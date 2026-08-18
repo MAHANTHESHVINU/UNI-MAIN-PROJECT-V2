@@ -17,7 +17,7 @@ from backend.src.services.video_indexer import VideoIndexerService
 
 #configure the logger
 
-logger = logging.getLogger("brand-guardian")
+logger = logging.getLogger("")
 logging.basicConfig(level=logging.INFO)
 
 #NODE 1 : INDEXER 
