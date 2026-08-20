@@ -85,18 +85,16 @@ class VideoIndexerService:
         logger.info(f"Downloading YouTube video: {url}")
 
         ydl_opts = {
-            "format": "bv*+ba/b",
-            "outtmpl": output_path,
+            "format": "bv*[height<=360][vcodec^=avc1]+ba[ext=m4a]/b[height<=360][ext=mp4]",
             "merge_output_format": "mp4",
-            "remote_components":["ejs:github"],
-            "quiet": False,
-            "no_warnings": False,
+            "outtmpl": "temp_audit_video.%(ext)s",
+            "noplaylist": True,
 
-            "continuedl": False,
         }
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                
                 ydl.download([url])
 
             logger.info("Download complete.")

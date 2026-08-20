@@ -29,7 +29,7 @@ class VideoAuditState(TypedDict):
 
     #ANLYSIS OUTPUT 
 
-    compliance_result : Annotated[List[ComplianceIssue], operator.add]
+    compliance_results : Annotated[List[ComplianceIssue], operator.add]
 
     #FINAL DELIVERABLES
 

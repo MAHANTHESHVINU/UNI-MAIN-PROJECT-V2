@@ -7,6 +7,11 @@ load_dotenv(override=True)
 
 from backend.src.graph.workflow import app
 
+
+# ---------------------------------------------------------
+# Logging
+# ---------------------------------------------------------
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
@@ -15,6 +20,10 @@ logging.basicConfig(
 logger = logging.getLogger("UNI-MAIN-PROJECT")
 
 
+# ---------------------------------------------------------
+# CLI Simulation
+# ---------------------------------------------------------
+
 def run_cli_simulation():
     """
     Simulates the video compliance audit request.
@@ -22,50 +31,166 @@ def run_cli_simulation():
 
     session_id = str(uuid.uuid4())
 
-    logger.info(f"Starting Audit Session: {session_id}")
+    logger.info(
+        f"Starting Audit Session: {session_id}"
+    )
 
-    # Defines the initial state
+    # -----------------------------------------------------
+    # Initial State
+    # -----------------------------------------------------
+
     initial_inputs = {
-        "video_url": "https://youtu.be/uv0NovEQldI?si=kTbS9jHbeyin_UWY",
+        "video_url": "https://youtu.be/eOY-g6ikFVU?si=ngJHDbv5tuW8TygSY",
         "video_id": f"vid_{session_id[:8]}",
         "compliance_results": [],
         "errors": []
     }
 
     print("\n------ INITIALIZING WORKFLOW ------")
-    print(f"Input Payload: {json.dumps(initial_inputs, indent=2)}")
+
+    print(
+        f"Input Payload: "
+        f"{json.dumps(initial_inputs, indent=2)}"
+    )
+
+    # -----------------------------------------------------
+    # Execute LangGraph Workflow
+    # -----------------------------------------------------
 
     try:
-        final_state = app.invoke(initial_inputs)
 
-        print("\n---- Workflow execution is complete ----")
+        final_state = app.invoke(
+            initial_inputs
+        )
 
-        print("\nCompliance Audit Report ==")
+        print(
+            "\n---- Workflow execution is complete ----"
+        )
 
-        print(f"Video ID: {final_state.get('video_id')}")
-        print(f"Status: {final_state.get('final_status')}")
+        # =================================================
+        # AUDIT REPORT
+        # =================================================
 
-        print("\n[VIOLATION DETECTED]")
+        print("\n==============================")
+        print("   COMPLIANCE AUDIT REPORT")
+        print("==============================")
 
-        results = final_state.get("compliance_results", [])
+        print(
+            f"\nVideo ID : "
+            f"{final_state.get('video_id', 'N/A')}"
+        )
+
+        status = final_state.get(
+            "final_status",
+            "UNKNOWN"
+        )
+
+        print(
+            f"Status   : {status}"
+        )
+
+        # =================================================
+        # VIOLATIONS
+        # =================================================
+
+        results = final_state.get(
+            "compliance_results",
+            []
+        )
 
         if results:
-            for issue in results:
-                print(
-                    f"- [{issue.get('severity')}] "
-                    f"[{issue.get('category')}] : "
-                    f"{issue.get('description')}"
-                )
-        else:
-            print("No violation is detected....")
 
-        print("\n[Final Summary]")
-        print(final_state.get("final_report"))
+            print(
+                f"\n[VIOLATIONS DETECTED: "
+                f"{len(results)}]"
+            )
+
+            for index, issue in enumerate(
+                results,
+                start=1
+            ):
+
+                category = issue.get(
+                    "category",
+                    "N/A"
+                )
+
+                severity = issue.get(
+                    "severity",
+                    "N/A"
+                )
+
+                description = issue.get(
+                    "description",
+                    "N/A"
+                )
+
+                print(
+                    f"\n{index}. {category}"
+                )
+
+                print(
+                    f"   Severity    : {severity}"
+                )
+
+                print(
+                    f"   Description : {description}"
+                )
+
+        else:
+
+            print(
+                "\n[NO VIOLATIONS DETECTED]"
+            )
+
+        # =================================================
+        # FINAL SUMMARY
+        # =================================================
+
+        print("\n[FINAL SUMMARY]")
+
+        print(
+            final_state.get(
+                "final_report",
+                "No report generated."
+            )
+        )
+
+        # =================================================
+        # ERRORS
+        # =================================================
+
+        errors = final_state.get(
+            "errors",
+            []
+        )
+
+        if errors:
+
+            print("\n[ERRORS]")
+
+            for error in errors:
+
+                print(
+                    f"- {error}"
+                )
+
+    # -----------------------------------------------------
+    # Workflow Error
+    # -----------------------------------------------------
 
     except Exception as e:
-        logger.error(f"Workflow Execution Failed: {str(e)}")
+
+        logger.error(
+            f"Workflow Execution Failed: {str(e)}"
+        )
+
         raise
 
+
+# ---------------------------------------------------------
+# Main
+# ---------------------------------------------------------
 
 if __name__ == "__main__":
     run_cli_simulation()
