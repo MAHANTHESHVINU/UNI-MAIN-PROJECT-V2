@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("api-server")
 
 app = FASTAPI(
-    title="Brand Guardian AI API",
+    title="UNI-MAIN-PROJECT API",
     description="API for Auditing video content against the brand compliance rules",
     version="1.0.0",
 )
@@ -76,4 +76,4 @@ async def audit_video(request:AuditRequest):
 @app.get("/health")
 def health_check():
 
-    return {"status" : "healthy" , "service":"Brand Guardian AI"}
+    return {"status" : "healthy" , "service":"UNI-MAIN-PROJECT AI"}
