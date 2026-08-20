@@ -3,7 +3,7 @@ import logging
 from azure.monitor.opentelemetry import configure_azure_monitor
 
 # dedicated logger
-logger = logging.getLogger("brand-guardian-telemetry")
+logger = logging.getLogger("UNI-MAIN-PROJECT-telemetry")
 
 
 def setup_telemetry():
@@ -24,7 +24,7 @@ def setup_telemetry():
 
     try:
         configure_azure_monitor(
-            connection_string=connection_string, logger_name="brand-guardian-tracer"
+            connection_string=connection_string, logger_name="UNI-MAIN-PROJECT-tracer"
         )
         logger.info("azure monitor tracking enabled and connected")
     except Exception as e:

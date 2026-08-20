@@ -4,10 +4,10 @@ import logging
 import re 
 from typing import Dict , Any , List
 
-from langchain_openai import AzureChatOpenAi , AzureOpenAIEmbeddings
+from langchain_openai import AzureChatOpenAI , AzureOpenAIEmbeddings
 from langchain_community.vectorstores import AzureSearch
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.messages import SystemMessage , HumamMessage
+from langchain_core.messages import SystemMessage , HumanMessage
 
 #IMPORT STATE SCHEMA 
 from backend.src.graph.state import VideoAuditState , ComplianceIssue
@@ -17,7 +17,7 @@ from backend.src.services.video_indexer import VideoIndexerService
 
 #configure the logger
 
-logger = logging.getLogger("brand-guardian")
+logger = logging.getLogger("")
 logging.basicConfig(level=logging.INFO)
 
 #NODE 1 : INDEXER 
@@ -28,7 +28,7 @@ def index_video_node(state:VideoAuditState) -> Dict[str,Any]:
         UPLOADS THE VIDEO TO AZURE VIDEO INDEXER
         EXTRACTS THE INSIGHTS
     '''
-    video_url =state.get("vedio_url")
+    video_url =state.get("video_url")
     video_id_input = state.get("video_id","video_demo")
 
     logger.info(f"----[NODE:INDEXER] Processing : {video_url}")
@@ -39,8 +39,8 @@ def index_video_node(state:VideoAuditState) -> Dict[str,Any]:
         vi_service = VideoIndexerService()
 
         #DOWNLOAD 
-        if "youtube.com" in video_url or "youtube" in video_url :
-            local_path = vi_service.download_youtube_video(video_url, output_path = local_filename)
+        if "youtube.com" in video_url or "youtu.be" in video_url :
+            local_path = vi_service.download_youtube_video(video_url, output_path = local_file)
         else:
             raise Exception("PLEASE PROVIDE A VALID YOUTUBE URL FOR THIS TEST ")
          
@@ -53,7 +53,7 @@ def index_video_node(state:VideoAuditState) -> Dict[str,Any]:
             os.remove(local_path)
 
         #WAIT 
-        raw_insights = vi_service.wait_for_processing(azure_vedio_id)
+        raw_insights = vi_service.wait_for_processing(azure_video_id)
 
         #EXTRACTS
         clean_data = vi_service.extract_data(raw_insights)
@@ -70,7 +70,7 @@ def index_video_node(state:VideoAuditState) -> Dict[str,Any]:
             
         }
 
-def audio_content_node(state:VideoAuditState) -> Dict[str,Any]:
+def audit_content_node(state:VideoAuditState) -> Dict[str,Any]:
 
     '''
         PERFORMS RAG TO AUDIT THE CONTENT - BRAND VIDEO
@@ -82,7 +82,7 @@ def audio_content_node(state:VideoAuditState) -> Dict[str,Any]:
     if not transcript :
         logger.warning("NO TRANSCRIPT AVAILABLE. SKIPPING AUDIT")
         return {
-            "final_status" : "FAIL"
+            "final_status" : "FAIL",
             "final_report" : "AUDIT SKIPPED BECAUSE VIDEO PROCESSING FAILED (NO TRANSCRIPT)"
 
         }
@@ -110,7 +110,7 @@ def audio_content_node(state:VideoAuditState) -> Dict[str,Any]:
 
     #RAG RETRIEVAL
     ocr_text = state.get("ocr_text",[])
-    query_text = f"{transcript}{.join(ocr_text}"
+    query_text = f"{transcript}{''.join(ocr_text)}"
     docs = vector_store.similarity_search(query_text,k=3)
     retrieved_rules = "\n\n".join([doc.page_content for doc in docs])
 
@@ -145,7 +145,7 @@ def audio_content_node(state:VideoAuditState) -> Dict[str,Any]:
     try:
         response = llm.invoke([
             SystemMessage(content=system_prompt),
-            HumamMessage(content=user_message)
+            HumanMessage(content=user_message)
         ])
 
         content = response.content
@@ -154,7 +154,7 @@ def audio_content_node(state:VideoAuditState) -> Dict[str,Any]:
         audit_data = json.loads(content.strip())
         return{
             "compliance_results" : audit_data.get("compliance_results",[]),
-            "final_status" : audit_data.get("status","FAIL")
+            "final_status" : audit_data.get("status","FAIL"),
             "final_report" : audit_data.get("fianl_report","No report generated")
 
         }
@@ -162,7 +162,7 @@ def audio_content_node(state:VideoAuditState) -> Dict[str,Any]:
     except Exception as e:
         logger.error(f"System Error in Auditor Node :{str(e)}")
         #logging the raw response
-        logger.error(f"Raw LLM response : {response.content if 'reponse' in locals() elsse 'None'}")
+        logger.error(f"Raw LLM response : {response.content if 'response' in locals() else 'None'}")
         return{
         "errors": [str(e)],
         "final_status": "FAIL"
