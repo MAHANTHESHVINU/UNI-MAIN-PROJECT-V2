@@ -40,7 +40,7 @@ def run_cli_simulation():
     # -----------------------------------------------------
 
     initial_inputs = {
-        "video_url": "https://youtu.be/eOY-g6ikFVU?si=ngJHDbv5tuW8TygSY",
+        "video_url": "https://youtu.be/V5TdVernYqU?si=x_J4A20J6Wy3rqbZ",
         "video_id": f"vid_{session_id[:8]}",
         "compliance_results": [],
         "errors": []
