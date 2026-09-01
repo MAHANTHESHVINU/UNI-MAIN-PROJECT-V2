@@ -1,14 +1,146 @@
-
 import os
 import time
 import logging
 import requests
 import yt_dlp
 
+from pathlib import Path
+
+from dotenv import load_dotenv
+
 from azure.identity import DefaultAzureCredential
 
 
-logger = logging.getLogger("video_indexer")
+# =========================================================
+# LOAD PROJECT .ENV
+# =========================================================
+
+BASE_DIR = Path(__file__).resolve().parents[3]
+
+ENV_FILE = BASE_DIR / ".env"
+
+load_dotenv(
+    ENV_FILE,
+    override=True
+)
+
+
+# =========================================================
+# LOGGER
+# =========================================================
+
+logger = logging.getLogger(
+    "video_indexer"
+)
+
+
+# =========================================================
+# VIDEO INDEXER SERVICE
+# =========================================================
+
+class VideoIndexerService:
+
+    def __init__(self):
+
+        # =================================================
+        # AZURE VIDEO INDEXER CONFIGURATION
+        # =================================================
+
+        self.account_id = os.getenv(
+            "AZURE_VI_ACCOUNT_ID"
+        )
+
+        self.location = os.getenv(
+            "AZURE_VI_LOCATION"
+        )
+
+        self.subscription_id = os.getenv(
+            "AZURE_SUBSCRIPTION_ID"
+        )
+
+        self.resource_group = os.getenv(
+            "AZURE_VI_RESOURCE_GROUP"
+        )
+
+        self.vi_name = os.getenv(
+            "AZURE_VI_NAME"
+        )
+
+        # =================================================
+        # VALIDATE CONFIGURATION
+        # =================================================
+
+        missing = []
+
+        if not self.subscription_id:
+            missing.append(
+                "AZURE_SUBSCRIPTION_ID"
+            )
+
+        if not self.account_id:
+            missing.append(
+                "AZURE_VI_ACCOUNT_ID"
+            )
+
+        if not self.location:
+            missing.append(
+                "AZURE_VI_LOCATION"
+            )
+
+        if not self.resource_group:
+            missing.append(
+                "AZURE_VI_RESOURCE_GROUP"
+            )
+
+        if not self.vi_name:
+            missing.append(
+                "AZURE_VI_NAME"
+            )
+
+        if missing:
+
+            raise RuntimeError(
+                "Missing Azure Video Indexer "
+                "environment variables: "
+                + ", ".join(missing)
+            )
+
+        # =================================================
+        # AZURE CREDENTIAL
+        # =================================================
+
+        self.credential = (
+            DefaultAzureCredential()
+        )
+
+        logger.info(
+            "Azure Video Indexer configuration loaded."
+        )
+
+        logger.info(
+            "Subscription: %s",
+            self.subscription_id
+        )
+
+        logger.info(
+            "Account: %s",
+            self.account_id
+        )
+
+        logger.info(
+            "Location: %s",
+            self.location
+        )
+
+        logger.info(
+            "Resource Group: %s",
+            self.resource_group
+        )
+
+        logger.info(
+            "Video Indexer Name: %s",
+            self.vi_name
+        )
 
 
 class VideoIndexerService:
