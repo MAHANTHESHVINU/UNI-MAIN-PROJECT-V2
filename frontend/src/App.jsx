@@ -72,6 +72,7 @@ export default function App() {
   const [targetView, setTargetView] = useState("terminal");
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [studioMode, setStudioMode] = useState(true);
+  const [theme, setTheme] = useState("light");
 
   const violations = useMemo(() => {
     return getViolations(result).map(normalizeViolation);
@@ -126,7 +127,7 @@ export default function App() {
   }
 
   return (
-    <div className="nexus-studio-app">
+    <div className={`nexus-studio-app ${theme === 'light' ? 'theme-light' : ''}`}>
       {/* 3D STUDIO EXPERIENCE (Graffico Office Style) */}
       {studioMode ? (
         <div className="studio-experience-wrap">
@@ -136,6 +137,7 @@ export default function App() {
               targetView={targetView}
               setTargetView={setTargetView}
               auditState={{ loading, result, error }}
+              theme={theme}
             >
               <TerminalScreen
                 videoUrl={videoUrl}
@@ -159,6 +161,8 @@ export default function App() {
             onResetAudit={resetAudit}
             showDetailModal={showDetailModal}
             setShowDetailModal={setShowDetailModal}
+            theme={theme}
+            setTheme={setTheme}
           />
 
           {/* Toggle View Mode in Studio */}
@@ -228,6 +232,7 @@ export default function App() {
         violations={violations}
         selectedViolation={selectedViolation}
         setSelectedViolation={setSelectedViolation}
+        theme={theme}
       />
     </div>
   );

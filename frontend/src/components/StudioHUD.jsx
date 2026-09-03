@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Monitor, Server, Eye, BarChart3, Volume2, VolumeX, Maximize2, RefreshCw } from './Icons';
+import { Monitor, Server, Eye, BarChart3, Volume2, VolumeX, Maximize2, RefreshCw, Sun, Moon } from './Icons';
 
 // Web Audio API synth sound generator
 const playTechChirp = (type = 'click') => {
@@ -38,10 +38,13 @@ export default function StudioHUD({
   auditState,
   onResetAudit,
   showDetailModal,
-  setShowDetailModal
+  setShowDetailModal,
+  theme,
+  setTheme
 }) {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [clock, setClock] = useState('');
+  const isLight = theme === 'light';
 
   useEffect(() => {
     const updateTime = () => {
@@ -63,6 +66,11 @@ export default function StudioHUD({
     if (!soundEnabled) playTechChirp('action');
   };
 
+  const toggleTheme = () => {
+    if (soundEnabled) playTechChirp('action');
+    setTheme(isLight ? 'dark' : 'light');
+  };
+
   const toggleFullscreen = () => {
     if (soundEnabled) playTechChirp('click');
     if (!document.fullscreenElement) {
@@ -73,14 +81,14 @@ export default function StudioHUD({
   };
 
   return (
-    <div className="studio-hud-overlay">
+    <div className={`studio-hud-overlay ${isLight ? 'theme-light' : ''}`}>
       {/* Top Studio Bar */}
       <header className="studio-topbar">
         <div className="studio-brand">
           <div className="studio-logo-pulse"></div>
           <div className="studio-title-group">
             <span className="studio-name">NEXUS // STUDIO</span>
-            <span className="studio-sub">GRAFFICO 3D COMPLIANCE LAB</span>
+            <span className="studio-sub">GRAFFICO 3D ARCHITECTURAL LAB</span>
           </div>
         </div>
 
@@ -99,6 +107,17 @@ export default function StudioHUD({
         {/* Right Tools */}
         <div className="studio-right-tools">
           <span className="studio-clock">{clock} UTC</span>
+
+          {/* Theme Toggle (Light / Dark) */}
+          <button
+            className="hud-icon-btn"
+            onClick={toggleTheme}
+            title={isLight ? "Switch to Dark Mode" : "Switch to Scandinavian Daylight Mode"}
+          >
+            {isLight ? <Moon size={16} /> : <Sun size={16} />}
+          </button>
+
+          {/* Sound Toggle */}
           <button
             className={`hud-icon-btn ${soundEnabled ? 'active' : ''}`}
             onClick={toggleSound}
@@ -106,6 +125,8 @@ export default function StudioHUD({
           >
             {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
           </button>
+
+          {/* Fullscreen Toggle */}
           <button
             className="hud-icon-btn"
             onClick={toggleFullscreen}
@@ -113,6 +134,7 @@ export default function StudioHUD({
           >
             <Maximize2 size={16} />
           </button>
+
           {auditState.result && (
             <button
               className="hud-action-pill"
@@ -133,7 +155,7 @@ export default function StudioHUD({
           <button
             className={`dock-btn ${targetView === 'overview' ? 'active' : ''}`}
             onClick={() => handleNavClick('overview')}
-            title="Isometric Room Overview"
+            title="Room Overview"
           >
             <Eye size={18} />
             <span>ROOM VIEW</span>

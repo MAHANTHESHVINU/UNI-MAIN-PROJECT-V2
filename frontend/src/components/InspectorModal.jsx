@@ -7,10 +7,12 @@ export default function InspectorModal({
   result,
   violations,
   selectedViolation,
-  setSelectedViolation
+  setSelectedViolation,
+  theme = 'light'
 }) {
   const [copied, setCopied] = useState(false);
   const [filterSeverity, setFilterSeverity] = useState('ALL');
+  const isLight = theme === 'light';
 
   if (!isOpen || !result) return null;
 
@@ -40,8 +42,8 @@ export default function InspectorModal({
   };
 
   return (
-    <div className="inspector-modal-backdrop" onClick={onClose}>
-      <div className="inspector-modal-container" onClick={(e) => e.stopPropagation()}>
+    <div className={`inspector-modal-backdrop ${isLight ? 'theme-light' : ''}`} onClick={onClose}>
+      <div className={`inspector-modal-container ${isLight ? 'theme-light' : ''}`} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="inspector-header">
           <div className="inspector-title-group">
