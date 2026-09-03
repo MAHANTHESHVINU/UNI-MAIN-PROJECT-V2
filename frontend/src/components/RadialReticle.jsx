@@ -107,3 +107,4 @@ export default function RadialReticle({ loading, result }) {
     </div>
   );
 }
+

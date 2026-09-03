@@ -73,8 +73,8 @@ export default function App() {
   const [error, setError] = useState("");
   const [selectedViolation, setSelectedViolation] = useState(null);
 
-  // Experience Mode ('industrial' = Aevion / Swiss style; 'studio' = 3D room)
-  const [experienceMode, setExperienceMode] = useState("industrial");
+  // Experience Mode ('studio' = 3D room; 'industrial' = Aevion Swiss style)
+  const [experienceMode, setExperienceMode] = useState("studio");
   const [theme, setTheme] = useState("light");
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [targetView, setTargetView] = useState("terminal");
