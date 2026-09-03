@@ -1,9 +1,14 @@
 import React, { useMemo, useState, Suspense } from "react";
 import "./App.css";
+import ScannerCore from "./components/ScannerCore";
+import RadialReticle from "./components/RadialReticle";
+import ForensicConsole from "./components/ForensicConsole";
+import AgentFlow from "./components/AgentFlow";
+import InspectorModal from "./components/InspectorModal";
 import OfficeScene from "./components/OfficeScene";
 import TerminalScreen from "./components/TerminalScreen";
 import StudioHUD from "./components/StudioHUD";
-import InspectorModal from "./components/InspectorModal";
+import { Sun, Moon, Maximize2, ShieldAlert } from "./components/Icons";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -68,11 +73,11 @@ export default function App() {
   const [error, setError] = useState("");
   const [selectedViolation, setSelectedViolation] = useState(null);
 
-  // 3D Studio State
-  const [targetView, setTargetView] = useState("terminal");
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [studioMode, setStudioMode] = useState(true);
+  // Experience Mode ('industrial' = Aevion / Swiss style; 'studio' = 3D room)
+  const [experienceMode, setExperienceMode] = useState("industrial");
   const [theme, setTheme] = useState("light");
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [targetView, setTargetView] = useState("terminal");
 
   const violations = useMemo(() => {
     return getViolations(result).map(normalizeViolation);
@@ -80,7 +85,7 @@ export default function App() {
 
   async function startAudit() {
     if (!videoUrl.trim()) {
-      setError("Enter a video URL first.");
+      setError("Enter a valid video URL first.");
       return;
     }
 
@@ -88,7 +93,6 @@ export default function App() {
     setError("");
     setResult(null);
     setSelectedViolation(null);
-    setTargetView("terminal");
 
     try {
       const response = await fetch(`${API_URL}/audit`, {
@@ -123,15 +127,132 @@ export default function App() {
     setResult(null);
     setError("");
     setSelectedViolation(null);
-    setTargetView("terminal");
   }
 
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+
   return (
-    <div className={`nexus-studio-app ${theme === 'light' ? 'theme-light' : ''}`}>
-      {/* 3D STUDIO EXPERIENCE (Graffico Office Style) */}
-      {studioMode ? (
+    <div className={`app-root ${theme === 'light' ? 'theme-light' : 'theme-dark'}`}>
+      {experienceMode === "industrial" ? (
+        /* ==================================================================
+           AEVION-INSPIRED INDUSTRIAL SWISS TECH EXPERIENCE (drone.riotters.com)
+           ================================================================== */
+        <div className="industrial-app-container">
+          {/* Top Industrial Navbar */}
+          <header className="swiss-nav">
+            <div className="nav-brand-group">
+              <div className="nav-brand-symbol">
+                <span></span>
+                <span></span>
+              </div>
+              <div className="nav-brand-titles">
+                <span className="brand-primary">nexus comply</span>
+                <span className="brand-dot-sep"></span>
+                <span className="brand-desc">Autonomous Video Compliance</span>
+              </div>
+            </div>
+
+            <div className="nav-center-badge">
+              <span className="status-bullet"></span>
+              <span className="mono-status">KERNEL: LANGGRAPH 0.2 // READY</span>
+            </div>
+
+            <div className="nav-actions">
+              <button
+                className="btn-pill-mode"
+                onClick={() => setExperienceMode("studio")}
+                title="Switch to 3D Virtual Studio Room"
+              >
+                3D STUDIO ROOM
+              </button>
+
+              <button
+                className="nav-icon-btn"
+                onClick={toggleTheme}
+                title="Toggle Theme"
+              >
+                {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+              </button>
+
+              <button
+                className="nav-icon-btn"
+                onClick={toggleFullscreen}
+                title="Toggle Fullscreen"
+              >
+                <Maximize2 size={16} />
+              </button>
+            </div>
+          </header>
+
+          {/* Hero Section with 3D LiDAR Gimbal & Dome Reticle */}
+          <section className="swiss-hero-section">
+            <div className="hero-typography-block">
+              <div className="hero-pill-badge">
+                <span>[ TECH DEMO // FORENSIC AI ]</span>
+              </div>
+              <h1 className="hero-giant-title">
+                Autonomous video
+                <br />
+                compliance inspection.
+              </h1>
+              <p className="hero-subtext">
+                Multi-modal frame parsing and regulatory verification at 240,000 points per second.
+                Precision evidence that protects digital media across global FTC, FCC, and SEC mandates.
+              </p>
+            </div>
+
+            {/* 3D Core with Radial Reticle */}
+            <div className="hero-scanner-stage">
+              <Suspense fallback={<div className="core-loader">INITIALIZING LIDAR OPTICS...</div>}>
+                <ScannerCore isScanning={loading} />
+              </Suspense>
+              <RadialReticle loading={loading} result={result} />
+            </div>
+
+            {/* Forensic Control Station */}
+            <div className="hero-console-mount">
+              <ForensicConsole
+                videoUrl={videoUrl}
+                setVideoUrl={setVideoUrl}
+                loading={loading}
+                error={error}
+                result={result}
+                violations={violations}
+                onStartAudit={startAudit}
+                onResetAudit={resetAudit}
+                onOpenInspector={() => setShowDetailModal(true)}
+              />
+            </div>
+          </section>
+
+          {/* Multi-Agent Pipeline Architecture */}
+          <AgentFlow loading={loading} result={result} />
+
+          {/* Swiss Footer */}
+          <footer className="swiss-footer">
+            <div className="footer-left">
+              <span>NEXUS COMPLY &bull; AUTONOMOUS REGULATORY INTELLIGENCE</span>
+            </div>
+            <div className="footer-right">
+              <span>DESIGNED TO INDUSTRY STANDARDS // ZERO LATENCY PIPELINE</span>
+            </div>
+          </footer>
+        </div>
+      ) : (
+        /* ==================================================================
+           3D STUDIO ROOM EXPERIENCE (Graffico Office style)
+           ================================================================== */
         <div className="studio-experience-wrap">
-          {/* 3D Scene Viewport */}
           <Suspense fallback={<div className="studio-loader">INITIALIZING 3D ENVIRONMENT...</div>}>
             <OfficeScene
               targetView={targetView}
@@ -153,7 +274,6 @@ export default function App() {
             </OfficeScene>
           </Suspense>
 
-          {/* HUD Overlay */}
           <StudioHUD
             targetView={targetView}
             setTargetView={setTargetView}
@@ -165,62 +285,13 @@ export default function App() {
             setTheme={setTheme}
           />
 
-          {/* Toggle View Mode in Studio */}
           <button
             className="mode-switcher-btn"
-            onClick={() => setStudioMode(false)}
-            title="Switch to 2D Dashboard View"
+            onClick={() => setExperienceMode("industrial")}
+            title="Switch to Industrial Swiss View"
           >
-            2D DASHBOARD
+            INDUSTRIAL SWISS VIEW
           </button>
-        </div>
-      ) : (
-        /* CLASSIC 2D DASHBOARD VIEW */
-        <div className="classic-dashboard-wrap">
-          <header className="topbar">
-            <div className="brand">
-              <div className="brand-mark">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-              <div>
-                <div className="brand-name">NEXUS</div>
-                <div className="brand-sub">COMPLY</div>
-              </div>
-            </div>
-
-            <div className="nav-center">
-              <span className="nav-active">AI AUDIT</span>
-              <button
-                className="mode-switcher-btn-inline"
-                onClick={() => setStudioMode(true)}
-              >
-                ENTER 3D STUDIO
-              </button>
-            </div>
-
-            <div className="system-status">
-              <span className="status-dot"></span>
-              BACKEND: {API_URL}
-            </div>
-          </header>
-
-          <main className="dashboard-content">
-            <div className="classic-terminal-container">
-              <TerminalScreen
-                videoUrl={videoUrl}
-                setVideoUrl={setVideoUrl}
-                loading={loading}
-                error={error}
-                result={result}
-                violations={violations}
-                onStartAudit={startAudit}
-                onOpenInspector={() => setShowDetailModal(true)}
-                onFocusView={setTargetView}
-              />
-            </div>
-          </main>
         </div>
       )}
 
