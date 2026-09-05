@@ -25,6 +25,8 @@ class VideoAuditState(TypedDict):
     evidence_summary: Dict[str, Any]
     temporal_clusters: List[Dict[str, Any]]
     compliance_results: Annotated[List[ComplianceIssue], operator.add]
+    verification_results: List[Dict[str, Any]]
+    verified_compliance_results: List[Dict[str, Any]]
     final_status: str
     final_report: str
     errors: Annotated[list[str], operator.add]
