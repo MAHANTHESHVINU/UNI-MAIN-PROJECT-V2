@@ -8,6 +8,7 @@ import InspectorModal from "./components/InspectorModal";
 import OfficeScene from "./components/OfficeScene";
 import TerminalScreen from "./components/TerminalScreen";
 import StudioHUD from "./components/StudioHUD";
+import GuidedExperience from "./components/GuidedExperience";
 import { Sun, Moon, Maximize2, ShieldAlert } from "./components/Icons";
 
 const API_URL = "http://127.0.0.1:8000";
@@ -73,8 +74,8 @@ export default function App() {
   const [error, setError] = useState("");
   const [selectedViolation, setSelectedViolation] = useState(null);
 
-  // Experience Mode ('studio' = 3D room; 'industrial' = Aevion Swiss style)
-  const [experienceMode, setExperienceMode] = useState("studio");
+  // Experience Mode ('guided' = Moves You 3D character guide; 'studio' = 3D room; 'industrial' = Aevion Swiss style)
+  const [experienceMode, setExperienceMode] = useState("guided");
   const [theme, setTheme] = useState("light");
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [targetView, setTargetView] = useState("terminal");
@@ -143,7 +144,78 @@ export default function App() {
 
   return (
     <div className={`app-root ${theme === 'light' ? 'theme-light' : 'theme-dark'}`}>
-      {experienceMode === "industrial" ? (
+      {experienceMode === "guided" ? (
+        /* ==================================================================
+           MOVES (YOU) INSPIRED 3D CHARACTER NAVIGATOR EXPERIENCE
+           ================================================================== */
+        <div className="guided-app-wrapper">
+          <header className="swiss-nav">
+            <div className="nav-brand-group">
+              <div className="nav-brand-symbol">
+                <span></span>
+                <span></span>
+              </div>
+              <div className="nav-brand-titles">
+                <span className="brand-primary">nexus comply</span>
+                <span className="brand-dot-sep"></span>
+                <span className="brand-desc">Interactive 3D Guided Audit</span>
+              </div>
+            </div>
+
+            <div className="nav-center-badge">
+              <span className="status-bullet"></span>
+              <span className="mono-status">GUIDE: AGENT ALEX // TRACKING GAZE</span>
+            </div>
+
+            <div className="nav-actions">
+              <button
+                className="btn-pill-mode"
+                onClick={() => setExperienceMode("studio")}
+                title="Switch to 3D Virtual Studio Room"
+              >
+                3D STUDIO
+              </button>
+
+              <button
+                className="btn-pill-mode"
+                onClick={() => setExperienceMode("industrial")}
+                title="Switch to Industrial Swiss View"
+              >
+                AEVION VIEW
+              </button>
+
+              <button
+                className="nav-icon-btn"
+                onClick={toggleTheme}
+                title="Toggle Theme"
+              >
+                {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+              </button>
+
+              <button
+                className="nav-icon-btn"
+                onClick={toggleFullscreen}
+                title="Toggle Fullscreen"
+              >
+                <Maximize2 size={16} />
+              </button>
+            </div>
+          </header>
+
+          <GuidedExperience
+            videoUrl={videoUrl}
+            setVideoUrl={setVideoUrl}
+            loading={loading}
+            error={error}
+            result={result}
+            violations={violations}
+            onStartAudit={startAudit}
+            onResetAudit={resetAudit}
+            onOpenInspector={() => setShowDetailModal(true)}
+            theme={theme}
+          />
+        </div>
+      ) : experienceMode === "industrial" ? (
         /* ==================================================================
            AEVION-INSPIRED INDUSTRIAL SWISS TECH EXPERIENCE (drone.riotters.com)
            ================================================================== */
