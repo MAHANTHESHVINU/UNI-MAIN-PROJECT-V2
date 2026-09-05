@@ -51,3 +51,4 @@ export default function AudioSpectrogram({ loading, result }) {
     </div>
   );
 }
+

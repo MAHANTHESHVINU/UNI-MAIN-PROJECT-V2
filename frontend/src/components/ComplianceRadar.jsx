@@ -151,3 +151,4 @@ export default function ComplianceRadar({ result, violationsCount = 0 }) {
     </div>
   );
 }
+

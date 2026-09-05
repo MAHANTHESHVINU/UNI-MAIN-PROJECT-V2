@@ -86,7 +86,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState("dark");
   const [filterSeverity, setFilterSeverity] = useState("ALL");
   const [selectedViolationId, setSelectedViolationId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
