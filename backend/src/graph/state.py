@@ -26,6 +26,7 @@ class VideoAuditState(TypedDict):
     temporal_clusters: List[Dict[str, Any]]
     compliance_results: Annotated[List[ComplianceIssue], operator.add]
     verification_results: List[Dict[str, Any]]
+    grounded_verification_results: List[Dict[str, Any]]
     verified_compliance_results: List[Dict[str, Any]]
     confidence_results: List[Dict[str, Any]]
     audit_dossier: Dict[str, Any]
