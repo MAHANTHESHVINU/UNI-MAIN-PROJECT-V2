@@ -26,6 +26,7 @@ class VideoAuditState(TypedDict):
     video_metadata: Dict[str, Any]
     transcript: Optional[str]
     ocr_text: List[str]
+    temporal_evidence: List[Dict[str, Any]]
 
     # =========================================================
     # EVIDENCE-CHAIN LAYER
