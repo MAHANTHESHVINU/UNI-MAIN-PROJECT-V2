@@ -18,7 +18,7 @@ logger = logging.getLogger("api-server")
 app = FastAPI(
     title="NEXUS COMPLY API",
     description="AI-powered video compliance auditing API with TECAR evidence traceability",
-    version="1.1.0",
+    version="1.2.0",
 )
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
@@ -40,6 +40,7 @@ class AuditResponse(BaseModel):
     confidence_results: list[dict]
     evidence_items: list[dict]
     temporal_clusters: list[dict]
+    evidence_graph: dict
     policy_provenance: dict
     audit_dossier: dict
     errors: list[str]
@@ -79,6 +80,7 @@ async def audit_video(request: AuditRequest):
             confidence_results=final_state.get("confidence_results", []),
             evidence_items=final_state.get("evidence_items", []),
             temporal_clusters=final_state.get("temporal_clusters", []),
+            evidence_graph=final_state.get("evidence_graph", {}),
             policy_provenance=final_state.get("policy_provenance", {}),
             audit_dossier=final_state.get("audit_dossier", {}),
             errors=final_state.get("errors", []),
@@ -95,6 +97,7 @@ async def audit_video(request: AuditRequest):
             confidence_results=[],
             evidence_items=[],
             temporal_clusters=[],
+            evidence_graph={},
             policy_provenance={"status": "FAILED"},
             audit_dossier={},
             errors=[str(e)],
