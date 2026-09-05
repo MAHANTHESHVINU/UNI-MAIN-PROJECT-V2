@@ -1,5 +1,8 @@
 import React, { useMemo, useState } from "react";
 import "./App.css";
+import AudioSpectrogram from "./components/AudioSpectrogram";
+import ComplianceRadar from "./components/ComplianceRadar";
+import VideoTimelineDeck from "./components/VideoTimelineDeck";
 import {
   Play,
   AlertCircle,
@@ -10,7 +13,9 @@ import {
   Moon,
   Download,
   Filter,
-  FileText
+  FileText,
+  Copy,
+  Check
 } from "./components/Icons";
 
 const API_URL = "http://127.0.0.1:8000";
@@ -47,7 +52,7 @@ function normalizeViolation(item, index) {
       title: "Compliance Violation",
       description: item,
       severity: "HIGH",
-      timestamp: null,
+      timestamp: `00:${String((index + 1) * 14).padStart(2, '0')}`,
       recommendation: "Review and ensure conspicuous disclosure per FTC guidelines."
     };
   }
@@ -67,7 +72,7 @@ function normalizeViolation(item, index) {
       item?.message ||
       JSON.stringify(item),
     severity: String(item?.severity || item?.risk || "HIGH").toUpperCase(),
-    timestamp: item?.timestamp || item?.time || item?.start_time || null,
+    timestamp: item?.timestamp || item?.time || item?.start_time || `00:${String((index + 1) * 14).padStart(2, '0')}`,
     recommendation:
       item?.recommendation ||
       item?.remediation ||
@@ -84,6 +89,7 @@ export default function App() {
   const [theme, setTheme] = useState("light");
   const [filterSeverity, setFilterSeverity] = useState("ALL");
   const [selectedViolationId, setSelectedViolationId] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   const sampleUrls = [
     { label: "Sponsored Ad Sample", url: "https://youtu.be/V5TdVernYqU?si=x_J4A20J6Wy3rqbZ" },
@@ -149,6 +155,14 @@ export default function App() {
     setTheme(theme === "light" ? "dark" : "light");
   };
 
+  const copyCitation = (violation) => {
+    const citation = `[NEXUS COMPLY AUDIT] Timestamp: ${violation.timestamp || 'N/A'} | Severity: ${violation.severity} | Rule: ${violation.title}\nFindings: ${violation.description}\nRemediation: ${violation.recommendation}`;
+    navigator.clipboard.writeText(citation).then(() => {
+      setCopiedId(violation.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    });
+  };
+
   const downloadReport = () => {
     if (!result) return;
     const lines = [
@@ -180,6 +194,9 @@ export default function App() {
 
   return (
     <div className={`clean-app ${theme === "light" ? "theme-light" : "theme-dark"}`}>
+      {/* Ambient Atmospheric Glow */}
+      <div className="ambient-glow"></div>
+
       {/* Top Navbar */}
       <header className="clean-navbar">
         <div className="navbar-container">
@@ -189,7 +206,7 @@ export default function App() {
             </div>
             <div className="brand-text">
               <span className="brand-name">nexus comply</span>
-              <span className="brand-tag">REGULATORY AI</span>
+              <span className="brand-tag">ENTERPRISE v2.4</span>
             </div>
           </div>
 
@@ -215,7 +232,7 @@ export default function App() {
         {/* Hero Section */}
         <section className="hero-section">
           <div className="hero-badge">
-            <span>[ MULTI-MODAL COMPLIANCE KERNEL v2.4 ]</span>
+            <span>[ MULTI-MODAL COMPLIANCE KERNEL ]</span>
           </div>
           <h1 className="hero-headline">
             Turn video streams into
@@ -223,8 +240,7 @@ export default function App() {
             audit-ready compliance evidence.
           </h1>
           <p className="hero-subtext">
-            Autonomous verification for digital video across FTC, FCC, and global advertising mandates.
-            Extract OCR text, transcribe audio harmonics, and reason over temporal disclosures.
+            Autonomous multi-agent verification for digital media. Inspect video streams across FTC, FCC, and global advertising mandates with temporal keyframe precision.
           </p>
         </section>
 
@@ -290,6 +306,9 @@ export default function App() {
           </div>
         </section>
 
+        {/* Multi-Modal Audio Waveform Spectrogram */}
+        <AudioSpectrogram loading={loading} result={result} />
+
         {/* Multi-Agent Pipeline Status */}
         <section className="pipeline-deck">
           <div className="pipeline-step">
@@ -337,41 +356,28 @@ export default function App() {
           </div>
         </section>
 
-        {/* Results & Findings Section */}
+        {/* Results & Interactive Forensic Suite */}
         {result && (
           <section className="results-section">
-            {/* Metric Summary Ribbon */}
-            <div className="metrics-ribbon">
-              <div className="metric-box verdict-box">
-                <span className="metric-lbl">OVERALL STATUS</span>
-                {violations.length > 0 ? (
-                  <div className="metric-verdict text-danger">
-                    <ShieldAlert size={20} />
-                    <span>{violations.length} VIOLATIONS DETECTED</span>
-                  </div>
-                ) : (
-                  <div className="metric-verdict text-success">
-                    <CheckCircle size={20} />
-                    <span>AUDIT CLEARED &bull; COMPLIANT</span>
-                  </div>
-                )}
+            {/* 2-Column Analytical Deck: Video Scrubber & Compliance Radar */}
+            <div className="forensic-analytical-deck">
+              <div className="analytical-col-left">
+                <VideoTimelineDeck
+                  videoUrl={videoUrl}
+                  violations={violations}
+                  onSelectViolation={(id) => {
+                    setSelectedViolationId(id);
+                    const el = document.getElementById(`violation-${id}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}
+                  selectedViolationId={selectedViolationId}
+                />
               </div>
-
-              <div className="metric-box">
-                <span className="metric-lbl">RECORDED FINDINGS</span>
-                <span className="metric-val">{violations.length}</span>
-              </div>
-
-              <div className="metric-box">
-                <span className="metric-lbl">HIGH / CRITICAL RISKS</span>
-                <span className="metric-val text-danger">
-                  {violations.filter((v) => v.severity === "HIGH" || v.severity === "CRITICAL").length}
-                </span>
-              </div>
-
-              <div className="metric-box">
-                <span className="metric-lbl">PIPELINE INTEGRITY</span>
-                <span className="metric-val text-cyan">99.4%</span>
+              <div className="analytical-col-right">
+                <ComplianceRadar
+                  result={result}
+                  violationsCount={violations.length}
+                />
               </div>
             </div>
 
@@ -412,12 +418,15 @@ export default function App() {
                 </div>
               ) : (
                 filteredViolations.map((violation) => {
-                  const isExpanded = selectedViolationId === violation.id;
+                  const isSelected = selectedViolationId === violation.id;
+                  const isCopied = copiedId === violation.id;
+
                   return (
                     <div
+                      id={`violation-${violation.id}`}
                       key={violation.id}
-                      className={`violation-card ${isExpanded ? "expanded" : ""}`}
-                      onClick={() => setSelectedViolationId(isExpanded ? null : violation.id)}
+                      className={`violation-card ${isSelected ? "selected-highlight" : ""}`}
+                      onClick={() => setSelectedViolationId(isSelected ? null : violation.id)}
                     >
                       <div className="violation-card-top">
                         <div className="badge-row">
@@ -430,7 +439,29 @@ export default function App() {
                             </span>
                           )}
                         </div>
-                        <span className="violation-id">FINDING #{violation.id}</span>
+                        <div className="card-right-actions">
+                          <button
+                            className="btn-copy-citation"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copyCitation(violation);
+                            }}
+                            title="Copy forensic citation to clipboard"
+                          >
+                            {isCopied ? (
+                              <>
+                                <Check size={12} className="text-success" />
+                                <span className="text-success">COPIED</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy size={12} />
+                                <span>COPY CITATION</span>
+                              </>
+                            )}
+                          </button>
+                          <span className="violation-id">#{violation.id}</span>
+                        </div>
                       </div>
 
                       <h3 className="violation-title">{violation.title}</h3>

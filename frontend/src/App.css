@@ -735,3 +735,501 @@ body, html {
     text-align: center;
   }
 }
+
+/* --------------------------------------------------------------------------
+   AMBIENT ATMOSPHERIC DEPTH & GLOW
+   -------------------------------------------------------------------------- */
+
+.ambient-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 450px;
+  background: radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.12), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.theme-dark .ambient-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.2), transparent 70%);
+}
+
+.clean-app {
+  position: relative;
+  background-image: radial-gradient(rgba(148, 163, 184, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.theme-dark .clean-app {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+
+/* --------------------------------------------------------------------------
+   AUDIO SPECTROGRAM
+   -------------------------------------------------------------------------- */
+
+.spectrogram-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 18px 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+}
+
+.spectrogram-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spectrogram-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.spectrogram-icon {
+  color: var(--accent-cyan);
+}
+
+.meta-pill {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+}
+
+.meta-pill.active {
+  background: rgba(124, 58, 237, 0.15);
+  color: var(--accent-purple);
+  border-color: rgba(124, 58, 237, 0.3);
+}
+
+.waveform-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 48px;
+  background: var(--bg-surface);
+  border-radius: 6px;
+  padding: 6px 12px;
+}
+
+.wave-bar {
+  flex: 1;
+  background: var(--accent-cyan);
+  border-radius: 2px 2px 0 0;
+  opacity: 0.65;
+  transition: height 0.2s ease;
+}
+
+.wave-bar.pulse {
+  background: linear-gradient(180deg, var(--accent-purple), var(--accent-cyan));
+  animation: wavePulse 0.8s infinite alternate ease-in-out;
+}
+
+@keyframes wavePulse {
+  0% { height: 15%; opacity: 0.4; }
+  100% { height: 95%; opacity: 1; }
+}
+
+.spectrogram-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.stream-ticker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   FORENSIC ANALYTICAL DECK (VIDEO TIMELINE + COMPLIANCE RADAR)
+   -------------------------------------------------------------------------- */
+
+.forensic-analytical-deck {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 20px;
+}
+
+/* Video Timeline Card */
+.video-timeline-deck-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.deck-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.deck-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-cyan);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.deck-title-row h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.marker-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-red);
+  background: rgba(239, 68, 68, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.video-player-container {
+  width: 100%;
+  height: 240px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+  position: relative;
+}
+
+.video-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.video-mock-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+  color: #fff;
+}
+
+.mock-reticle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.mock-play {
+  color: var(--accent-cyan);
+}
+
+.mock-url {
+  font-size: 10px;
+  color: #94a3b8;
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Timeline Scrubber */
+.timeline-scrubber-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.timeline-labels-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+.timeline-instruction {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.timeline-track-bar {
+  width: 100%;
+  height: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  position: relative;
+  cursor: pointer;
+}
+
+.timeline-track-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(2, 132, 199, 0.15), rgba(37, 99, 235, 0.05));
+  border-radius: 6px;
+}
+
+.timeline-pin {
+  position: absolute;
+  top: -6px;
+  transform: translateX(-50%);
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pin-head {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease;
+}
+
+.pin-critical .pin-head, .pin-high .pin-head {
+  background: var(--accent-red);
+}
+
+.pin-medium .pin-head {
+  background: var(--accent-amber);
+}
+
+.pin-low .pin-head {
+  background: var(--accent-blue);
+}
+
+.pin-stem {
+  width: 2px;
+  height: 14px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.timeline-pin:hover .pin-head, .timeline-pin.selected .pin-head {
+  transform: scale(1.4);
+}
+
+.pin-popover-tooltip {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.popover-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.popover-badge {
+  font-size: 8.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.popover-time {
+  font-size: 10px;
+  color: var(--accent-cyan);
+}
+
+.popover-title {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.popover-cta {
+  font-size: 9px;
+  color: #94a3b8;
+}
+
+/* --------------------------------------------------------------------------
+   COMPLIANCE RADAR
+   -------------------------------------------------------------------------- */
+
+.compliance-radar-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.radar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.radar-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-cyan);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.radar-title-group h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.radar-score-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  background: rgba(2, 132, 199, 0.1);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(2, 132, 199, 0.2);
+}
+
+.score-number {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--accent-cyan);
+}
+
+.score-total {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.radar-svg-wrap {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.radar-svg {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+}
+
+.radar-grid-line {
+  stroke: var(--border-color);
+}
+
+.radar-axis-line {
+  stroke: var(--border-color);
+}
+
+.radar-axis-text {
+  font-size: 8px;
+  fill: var(--text-secondary);
+}
+
+.radar-legend {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.legend-dot.pass { background: var(--accent-green); }
+.legend-dot.warn { background: var(--accent-amber); }
+
+/* Copy Citation & Card Actions */
+.card-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-copy-citation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-copy-citation:hover {
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+
+.violation-card.selected-highlight {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.25), var(--shadow-md);
+  background: rgba(2, 132, 199, 0.02);
+}
+
+@media (max-width: 960px) {
+  .forensic-analytical-deck {
+    grid-template-columns: 1fr;
+  }
+}
