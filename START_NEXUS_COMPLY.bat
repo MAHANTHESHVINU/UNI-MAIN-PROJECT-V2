@@ -1,7 +1,9 @@
 @echo off
 setlocal EnableExtensions
 
-title NEXUS COMPLY - Startup
+title NEXUS COMPLY
+
+cd /d "%~dp0"
 
 echo.
 echo ==========================================================
@@ -9,206 +11,146 @@ echo                 NEXUS COMPLY
 echo          AI VIDEO COMPLIANCE PLATFORM
 echo ==========================================================
 echo.
-
-cd /d "%~dp0"
-
-echo [1/7] Checking project directory...
 echo Project:
 echo %CD%
 echo.
 
 REM ==========================================================
-REM CHECK PYTHON
+REM 1. CHECK UV
 REM ==========================================================
 
-echo [2/7] Checking Python...
+echo [1/5] Checking uv...
 
-where python >nul 2>&1
+where uv >nul 2>&1
 
 if errorlevel 1 (
-    echo.
-    echo ERROR: Python was not found.
-    echo Please install Python 3.11+ and add it to PATH.
-    echo.
+    echo ERROR: uv is not installed or not in PATH.
     pause
     exit /b 1
 )
+
+uv --version
+echo uv detected.
+
+REM ==========================================================
+REM 2. CHECK PYTHON
+REM ==========================================================
+
+echo.
+echo [2/5] Checking Python...
 
 python --version
 
-echo.
-
-
-REM ==========================================================
-REM CREATE VIRTUAL ENVIRONMENT
-REM ==========================================================
-
-echo [3/7] Checking Python virtual environment...
-
-if not exist ".venv\Scripts\python.exe" (
-    echo Virtual environment not found.
-    echo Creating .venv...
-    echo.
-
-    python -m venv .venv
-
-    if errorlevel 1 (
-        echo.
-        echo ERROR: Failed to create virtual environment.
-        pause
-        exit /b 1
-    )
-
-    echo Virtual environment created.
-)
-
-echo.
-
-
-REM ==========================================================
-REM INSTALL BACKEND DEPENDENCIES
-REM ==========================================================
-
-echo Installing backend dependencies...
-
-if exist "requirements.txt" (
-
-    ".venv\Scripts\python.exe" -m pip install --upgrade pip
-
-    ".venv\Scripts\python.exe" -m pip install -r requirements.txt
-
-    if errorlevel 1 (
-        echo.
-        echo ERROR: Backend dependency installation failed.
-        pause
-        exit /b 1
-    )
-
-) else (
-
-    echo.
-    echo WARNING:
-    echo requirements.txt was not found.
-    echo Backend dependencies cannot be installed automatically.
-    echo.
-)
-
-echo Backend dependencies ready.
-echo.
-
-
-REM ==========================================================
-REM CHECK NODE
-REM ==========================================================
-
-echo Checking Node.js...
-
-where node >nul 2>&1
-
 if errorlevel 1 (
-    echo.
-    echo ERROR: Node.js was not found.
-    echo Please install Node.js LTS.
-    echo.
+    echo ERROR: Python is not available.
     pause
     exit /b 1
 )
 
-node --version
-npm --version
+REM ==========================================================
+REM 3. CHECK AZURE CLI
+REM ==========================================================
 
 echo.
+echo [3/5] Checking Azure CLI...
 
+where az >nul 2>&1
+
+if errorlevel 1 (
+    echo ERROR: Azure CLI is not installed or not in PATH.
+    pause
+    exit /b 1
+)
+
+echo Azure CLI detected.
+echo Azure authentication will be handled by the backend.
 
 REM ==========================================================
-REM INSTALL FRONTEND DEPENDENCIES
+REM 4. SYNC PYTHON DEPENDENCIES
 REM ==========================================================
 
-echo [4/7] Checking frontend dependencies...
+echo.
+echo [4/5] Syncing Python dependencies...
+
+uv sync
+
+if errorlevel 1 (
+    echo.
+    echo ERROR: uv sync failed.
+    pause
+    exit /b 1
+)
+
+echo.
+echo Python dependencies ready.
+
+REM ==========================================================
+REM 5. PREPARE FRONTEND
+REM ==========================================================
+
+echo.
+echo [5/5] Preparing frontend...
+
+if not exist "frontend\package.json" (
+    echo.
+    echo ERROR: frontend\package.json not found.
+    pause
+    exit /b 1
+)
 
 cd /d "%~dp0frontend"
 
-if not exist "package.json" (
+if exist "package-lock.json" (
+    echo package-lock.json found.
+    echo Running npm ci...
+    call npm ci
+) else (
+    echo package-lock.json not found.
+    echo Running npm install...
+    call npm install
+)
+
+if errorlevel 1 (
     echo.
-    echo ERROR: frontend\package.json was not found.
+    echo ERROR: npm dependency installation failed.
     cd /d "%~dp0"
     pause
     exit /b 1
 )
 
-if not exist "node_modules" (
-
-    echo node_modules not found.
-    echo Installing frontend dependencies...
-
-    if exist "package-lock.json" (
-        npm ci
-    ) else (
-        npm install
-    )
-
-    if errorlevel 1 (
-        echo.
-        echo ERROR: Frontend dependency installation failed.
-        cd /d "%~dp0"
-        pause
-        exit /b 1
-    )
-
-) else (
-
-    echo node_modules already exists.
-    echo Checking dependencies...
-
-    if exist "package-lock.json" (
-        npm ci
-    ) else (
-        npm install
-    )
-
-    if errorlevel 1 (
-        echo.
-        echo ERROR: npm dependency check failed.
-        cd /d "%~dp0"
-        pause
-        exit /b 1
-    )
-)
-
-echo Frontend dependencies ready.
-echo.
-
+cd /d "%~dp0"
 
 REM ==========================================================
 REM START BACKEND
 REM ==========================================================
 
-echo [5/7] Starting NEXUS COMPLY backend...
-
-cd /d "%~dp0"
-
-start "NEXUS COMPLY - BACKEND" cmd /k ^
-".venv\Scripts\python.exe -m uvicorn backend.src.api.main:app --host 127.0.0.1 --port 8000"
-
-echo Backend process started.
+echo.
+echo ==========================================================
+echo              STARTING NEXUS COMPLY
+echo ==========================================================
 echo.
 
+echo Starting backend...
+
+start "NEXUS COMPLY BACKEND" cmd /k "cd /d ""%~dp0"" && uv run uvicorn backend.src.api.main:app --host 127.0.0.1 --port 8000"
+
+echo Backend process started.
 
 REM ==========================================================
 REM WAIT FOR BACKEND
 REM ==========================================================
 
-echo [6/7] Waiting for backend...
+echo.
+echo Waiting for backend...
 
-set BACKEND_READY=0
+set "BACKEND_READY=0"
 
 for /L %%i in (1,1,30) do (
 
-    powershell -NoProfile -Command ^
-    "try { $r=Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8000/health -TimeoutSec 2; if($r.StatusCode -eq 200){exit 0}else{exit 1} } catch { exit 1 }"
+    powershell -NoProfile -Command "try { $r=Invoke-WebRequest 'http://127.0.0.1:8000/health' -UseBasicParsing -TimeoutSec 2; if ($r.StatusCode -eq 200) { exit 0 } else { exit 1 } } catch { exit 1 }"
 
     if not errorlevel 1 (
-        set BACKEND_READY=1
+        set "BACKEND_READY=1"
         goto BACKEND_READY
     )
 
@@ -218,73 +160,59 @@ for /L %%i in (1,1,30) do (
 
 :BACKEND_READY
 
-if "%BACKEND_READY%"=="0" (
+if "%BACKEND_READY%"=="1" (
     echo.
-    echo WARNING:
-    echo Backend did not respond within the expected time.
-    echo Check the backend terminal window.
-    echo.
+    echo Backend is READY.
 ) else (
-    echo Backend is ONLINE.
+    echo.
+    echo WARNING: Backend did not respond within 60 seconds.
+    echo Check the backend terminal window.
 )
-
-echo.
-
 
 REM ==========================================================
 REM START FRONTEND
 REM ==========================================================
 
-echo Starting NEXUS COMPLY frontend...
+echo.
+echo Starting frontend...
 
-cd /d "%~dp0frontend"
-
-start "NEXUS COMPLY - FRONTEND" cmd /k "npm run dev"
+start "NEXUS COMPLY FRONTEND" cmd /k "cd /d ""%~dp0frontend"" && npm run dev"
 
 echo Frontend process started.
-echo.
-
 
 REM ==========================================================
 REM WAIT FOR FRONTEND
 REM ==========================================================
 
+echo.
 echo Waiting for frontend...
 
 timeout /t 5 /nobreak >nul
-
-echo.
-
 
 REM ==========================================================
 REM OPEN BROWSER
 REM ==========================================================
 
-echo [7/7] Opening NEXUS COMPLY...
+echo.
+echo Opening NEXUS COMPLY...
 
-start "" "http://localhost:5173/"
+start "" "http://localhost:5173"
+
+REM ==========================================================
+REM FINAL STATUS
+REM ==========================================================
 
 echo.
 echo ==========================================================
-echo              NEXUS COMPLY IS RUNNING
+echo              NEXUS COMPLY RUNNING
 echo ==========================================================
 echo.
-echo Frontend:
-echo http://localhost:5173/
-echo.
-echo Backend:
-echo http://127.0.0.1:8000/
-echo.
-echo Swagger:
-echo http://127.0.0.1:8000/docs
-echo.
-echo Health:
-echo http://127.0.0.1:8000/health
+echo Frontend : http://localhost:5173
+echo Backend  : http://127.0.0.1:8000
+echo Swagger  : http://127.0.0.1:8000/docs
+echo Health   : http://127.0.0.1:8000/health
 echo.
 echo ==========================================================
-echo.
-echo Keep the backend and frontend terminal windows open.
-echo Close them when you want to stop NEXUS COMPLY.
 echo.
 
 pause
