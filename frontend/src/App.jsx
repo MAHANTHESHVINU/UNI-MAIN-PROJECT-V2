@@ -194,11 +194,27 @@ export default function App() {
 
   return (
     <div className={`clean-app ${theme === "light" ? "theme-light" : "theme-dark"}`}>
-      {/* Ambient Atmospheric Glow */}
-      <div className="ambient-glow"></div>
+      {/* Top Technical Telemetry Ticker Ribbon */}
+      <div className="technical-ticker-ribbon">
+        <div className="ticker-inner">
+          <span className="ticker-item"><span className="dot-green"></span> KERNEL: v2.4.1_PROD</span>
+          <span className="ticker-sep">|</span>
+          <span className="ticker-item">PORT: 8000/TCP</span>
+          <span className="ticker-sep">|</span>
+          <span className="ticker-item">PIPELINE: LANGGRAPH_0.2</span>
+          <span className="ticker-sep">|</span>
+          <span className="ticker-item">SAMPLING: 24.0 FPS</span>
+          <span className="ticker-sep">|</span>
+          <span className="ticker-item">FFT_CHANNELS: 512</span>
+          <span className="ticker-sep">|</span>
+          <span className="ticker-item">LATENCY: ~12.4ms</span>
+          <span className="ticker-sep">|</span>
+          <span className="ticker-item text-cyan">STATUS: NOMINAL // 0x7F01</span>
+        </div>
+      </div>
 
       {/* Top Navbar */}
-      <header className="clean-navbar">
+      <header className="clean-navbar technical-navbar">
         <div className="navbar-container">
           <div className="nav-brand">
             <div className="brand-logo-icon">
@@ -206,14 +222,14 @@ export default function App() {
             </div>
             <div className="brand-text">
               <span className="brand-name">nexus comply</span>
-              <span className="brand-tag">ENTERPRISE v2.4</span>
+              <span className="brand-tag">[ FORENSIC_TERMINAL ]</span>
             </div>
           </div>
 
           <div className="nav-right">
-            <div className="system-status-pill">
+            <div className="system-status-pill technical-status-pill">
               <span className={`status-indicator ${loading ? "busy" : "ready"}`}></span>
-              <span>{loading ? "PROCESSING AUDIT" : "SYSTEM READY"}</span>
+              <span>{loading ? "EXEC_PIPELINE" : "SYSTEM_READY"}</span>
             </div>
 
             <button
@@ -230,22 +246,32 @@ export default function App() {
       {/* Main Content Area */}
       <main className="clean-main-container">
         {/* Hero Section */}
-        <section className="hero-section">
-          <div className="hero-badge">
-            <span>[ MULTI-MODAL COMPLIANCE KERNEL ]</span>
+        <section className="hero-section technical-hero">
+          <div className="hero-badge technical-hero-badge">
+            <span>[ SYSTEM // MULTI-MODAL REGULATORY KERNEL ]</span>
           </div>
-          <h1 className="hero-headline">
-            Turn video streams into
+          <h1 className="hero-headline technical-headline">
+            Autonomous video
             <br />
-            audit-ready compliance evidence.
+            compliance verification.
           </h1>
-          <p className="hero-subtext">
-            Autonomous multi-agent verification for digital media. Inspect video streams across FTC, FCC, and global advertising mandates with temporal keyframe precision.
+          <p className="hero-subtext technical-subtext">
+            Multi-modal forensic keyframe demuxing, Whisper acoustic transcript alignment, and automated FTC/FCC rule reasoning at 240,000 data points per second.
           </p>
         </section>
 
         {/* Audit Input Card */}
-        <section className="audit-input-card">
+        <section className="technical-card audit-input-card">
+          <span className="card-reticle top-left">+</span>
+          <span className="card-reticle top-right">+</span>
+          <span className="card-reticle bottom-left">+</span>
+          <span className="card-reticle bottom-right">+</span>
+
+          <div className="card-tech-header">
+            <span className="tech-badge-inline">[ INGESTION // TARGET_URI ]</span>
+            <span className="tech-meta-tag">PROTO: HTTPS &bull; CODEC: AUTO</span>
+          </div>
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -253,29 +279,30 @@ export default function App() {
             }}
             className="audit-form"
           >
-            <div className="input-group">
+            <div className="input-group technical-input-group">
+              <span className="input-cli-prompt">&gt;&gt;</span>
               <input
                 type="text"
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="Paste video stream URL (YouTube, MP4, WebM)..."
-                className="audit-text-input"
+                placeholder="https://youtu.be/... (YouTube, MP4, WebM)"
+                className="audit-text-input technical-text-input"
                 disabled={loading}
               />
               <button
                 type="submit"
                 disabled={!videoUrl.trim() || loading}
-                className="btn-run-audit"
+                className="btn-run-audit technical-btn-submit"
               >
                 {loading ? (
                   <>
                     <span className="loading-spinner"></span>
-                    <span>RUNNING AUDIT...</span>
+                    <span>PROCESSING...</span>
                   </>
                 ) : (
                   <>
                     <Play size={15} />
-                    <span>RUN COMPLIANCE AUDIT</span>
+                    <span>EXECUTE AUDIT</span>
                   </>
                 )}
               </button>
@@ -283,20 +310,20 @@ export default function App() {
           </form>
 
           {error && (
-            <div className="error-alert">
+            <div className="error-alert technical-error">
               <AlertCircle size={16} />
-              <span>{error}</span>
+              <span>[ ERROR_SYS ]: {error}</span>
             </div>
           )}
 
           {/* Quick Benchmark Chips */}
           <div className="benchmarks-bar">
-            <span className="benchmarks-title">QUICK SAMPLES:</span>
+            <span className="benchmarks-title">[ BENCHMARKS ]:</span>
             {sampleUrls.map((sample, idx) => (
               <button
                 key={idx}
                 type="button"
-                className="sample-chip"
+                className="sample-chip technical-chip"
                 onClick={() => setVideoUrl(sample.url)}
                 disabled={loading}
               >

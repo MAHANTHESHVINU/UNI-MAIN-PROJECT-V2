@@ -22,7 +22,6 @@ export default function VideoTimelineDeck({
   const timelineMarkers = useMemo(() => {
     if (violations.length === 0) return [];
     return violations.map((v, i) => {
-      // If timestamp exists, parse mm:ss or generate distributed point
       let percent = 15 + ((i * 22) % 75);
       if (v.timestamp && typeof v.timestamp === 'string') {
         const parts = v.timestamp.split(':');
@@ -40,19 +39,25 @@ export default function VideoTimelineDeck({
   }, [violations]);
 
   return (
-    <div className="video-timeline-deck-card">
+    <div className="technical-card video-timeline-deck-card">
+      {/* Corner Crosshair Reticles */}
+      <span className="card-reticle top-left">+</span>
+      <span className="card-reticle top-right">+</span>
+      <span className="card-reticle bottom-left">+</span>
+      <span className="card-reticle bottom-right">+</span>
+
       <div className="deck-header">
         <div className="deck-title-row">
-          <span className="deck-tag">[ FORENSIC VIDEO TIMELINE ]</span>
-          <h3>Temporal Keyframe Inspection</h3>
+          <span className="tech-badge-inline">[ TEMPORAL_INSPECTOR // CAM_01 ]</span>
+          <h3 className="tech-heading">FRAME SCANNER &bull; SMPTE TIMECODE</h3>
         </div>
         <div className="deck-meta">
-          <span className="marker-count">{violations.length} VIOLATION PINS</span>
+          <span className="marker-count tech-count-tag">{violations.length} ANOMALIES PINNED</span>
         </div>
       </div>
 
-      {/* Embedded Video Player or Aesthetic Frame Deck */}
-      <div className="video-player-container">
+      {/* Embedded Video Player or Technical HUD Viewport */}
+      <div className="video-player-container technical-player-viewport">
         {embedUrl ? (
           <iframe
             src={embedUrl}
@@ -62,26 +67,30 @@ export default function VideoTimelineDeck({
             allowFullScreen
           />
         ) : (
-          <div className="video-mock-fallback">
+          <div className="video-mock-fallback technical-hud-grid">
+            <div className="hud-aim-crosshair"></div>
             <div className="mock-reticle">
-              <Play size={28} className="mock-play" />
-              <span>INSPECTION FRAME STREAM</span>
-              <span className="mock-url">{videoUrl || "https://youtu.be/sample"}</span>
+              <Play size={24} className="mock-play" />
+              <span className="hud-target-text">TARGET_STREAM: 1920x1080@60FPS</span>
+              <span className="mock-url">{videoUrl || "https://youtu.be/sample_stream"}</span>
             </div>
+            <div className="hud-corner-readout tl">FPS: 59.94</div>
+            <div className="hud-corner-readout tr">SMPTE: 00:00:00:00</div>
+            <div className="hud-corner-readout bl">ISO: 400</div>
+            <div className="hud-corner-readout br">BURST: 24-FRM</div>
           </div>
         )}
       </div>
 
       {/* Interactive Timeline Scrubber Bar */}
       <div className="timeline-scrubber-section">
-        <div className="timeline-labels-row">
-          <span>00:00 [ START ]</span>
-          <span className="timeline-instruction">CLICK MARKER TO JUMP TO FINDING</span>
-          <span>END OF STREAM</span>
+        <div className="timeline-labels-row technical-labels">
+          <span>00:00:00:00 [ IN ]</span>
+          <span className="timeline-instruction">[ SCRUB_TIMELINE &bull; SELECT PIN TO LOCATE ]</span>
+          <span>00:03:00:00 [ OUT ]</span>
         </div>
 
-        <div className="timeline-track-bar">
-          {/* Subtle Progress Fill */}
+        <div className="timeline-track-bar technical-track-bar">
           <div className="timeline-track-fill"></div>
 
           {/* Color-Coded Temporal Pins */}
@@ -101,19 +110,19 @@ export default function VideoTimelineDeck({
                 <div className="pin-head"></div>
                 <div className="pin-stem"></div>
 
-                {/* Rich Floating Tooltip on Hover */}
+                {/* Technical Floating Tooltip */}
                 {(isHovered || isSelected) && (
-                  <div className="pin-popover-tooltip">
+                  <div className="pin-popover-tooltip technical-tooltip">
                     <div className="popover-top">
                       <span className={`popover-badge sev-${marker.severity.toLowerCase()}`}>
                         {marker.severity}
                       </span>
                       <span className="popover-time">
-                        {marker.timestamp || `FRAME #${marker.id * 24}`}
+                        SMPTE: {marker.timestamp ? `${marker.timestamp}:00` : `FRM_${marker.id * 24}`}
                       </span>
                     </div>
                     <div className="popover-title">{marker.title}</div>
-                    <div className="popover-cta">Click to view details &darr;</div>
+                    <div className="popover-cta">&gt;&gt; JUMP TO AUDIT RECORD</div>
                   </div>
                 )}
               </div>
@@ -124,4 +133,3 @@ export default function VideoTimelineDeck({
     </div>
   );
 }
-
