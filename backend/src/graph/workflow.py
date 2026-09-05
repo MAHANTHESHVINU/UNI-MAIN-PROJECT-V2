@@ -1,6 +1,6 @@
 '''
-TECAR workflow: temporal evidence extraction, verification, grounding,
-policy provenance, confidence scoring, and final audit reporting.
+TECAR workflow: temporal evidence extraction, candidate findings, evidence
+verification, grounding, policy provenance, confidence scoring, and reporting.
 '''
 
 from langgraph.graph import StateGraph, END
@@ -22,8 +22,8 @@ def create_graph():
     workflow.add_node("indexer", index_video_node)
     workflow.add_node("evidence_builder", evidence_builder_node)
     workflow.add_node("temporal_cluster", temporal_cluster_node)
-    workflow.add_node("evidence_graph", evidence_graph_node)
     workflow.add_node("auditor", audit_content_node)
+    workflow.add_node("evidence_graph", evidence_graph_node)
     workflow.add_node("evidence_verifier", evidence_verifier_node)
     workflow.add_node("evidence_grounding", evidence_grounding_node)
     workflow.add_node("policy_provenance", policy_provenance_node)
@@ -33,9 +33,9 @@ def create_graph():
     workflow.set_entry_point("indexer")
     workflow.add_edge("indexer", "evidence_builder")
     workflow.add_edge("evidence_builder", "temporal_cluster")
-    workflow.add_edge("temporal_cluster", "evidence_graph")
-    workflow.add_edge("evidence_graph", "auditor")
-    workflow.add_edge("auditor", "evidence_verifier")
+    workflow.add_edge("temporal_cluster", "auditor")
+    workflow.add_edge("auditor", "evidence_graph")
+    workflow.add_edge("evidence_graph", "evidence_verifier")
     workflow.add_edge("evidence_verifier", "evidence_grounding")
     workflow.add_edge("evidence_grounding", "policy_provenance")
     workflow.add_edge("policy_provenance", "confidence_engine")
