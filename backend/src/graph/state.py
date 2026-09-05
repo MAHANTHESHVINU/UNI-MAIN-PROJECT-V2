@@ -29,6 +29,8 @@ class VideoAuditState(TypedDict):
     grounded_verification_results: List[Dict[str, Any]]
     verified_compliance_results: List[Dict[str, Any]]
     confidence_results: List[Dict[str, Any]]
+    policy_rules: List[Dict[str, Any]]
+    policy_provenance: Dict[str, Any]
     audit_dossier: Dict[str, Any]
     final_status: str
     final_report: str
