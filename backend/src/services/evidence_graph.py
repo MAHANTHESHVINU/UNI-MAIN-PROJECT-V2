@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-from collections import defaultdict
 from typing import Any, Dict, List
 
 
 def _evidence_id(item: Dict[str, Any], index: int) -> str:
     existing = item.get("evidence_id") or item.get("id")
-    if existing:
-        return str(existing)
-    return f"E{index + 1:04d}"
+    return str(existing) if existing else f"E{index + 1:04d}"
 
 
 def build_evidence_graph(
@@ -16,21 +13,19 @@ def build_evidence_graph(
     temporal_clusters: List[Dict[str, Any]],
     findings: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
-    """Build a deterministic, serializable evidence graph for TECAR.
-
-    Nodes are evidence items, temporal clusters, findings and policy references.
-    Edges preserve provenance without inventing timestamps or policy relationships.
-    """
+    """Build a deterministic serializable evidence graph for TECAR."""
     nodes: List[Dict[str, Any]] = []
     edges: List[Dict[str, Any]] = []
     evidence_by_content: Dict[str, str] = {}
+    normalized_items: List[Dict[str, Any]] = []
 
     for index, item in enumerate(evidence_items or []):
-        evidence_id = _evidence_id(item, index)
         node = dict(item)
+        evidence_id = _evidence_id(node, index)
         node["evidence_id"] = evidence_id
+        normalized_items.append(node)
         nodes.append({"id": evidence_id, "type": "evidence", "data": node})
-        normalized = str(item.get("content", "")).strip().lower()
+        normalized = str(node.get("content", "")).strip().lower()
         if normalized:
             evidence_by_content[normalized] = evidence_id
 
@@ -85,13 +80,13 @@ def build_evidence_graph(
             "temporal_cluster": sum(n["type"] == "temporal_cluster" for n in nodes),
             "finding": sum(n["type"] == "finding" for n in nodes),
         },
-    }
+    }, normalized_items
 
 
 def evidence_graph_node(state: Dict[str, Any]) -> Dict[str, Any]:
-    graph = build_evidence_graph(
+    graph, normalized_items = build_evidence_graph(
         state.get("evidence_items", []),
         state.get("temporal_clusters", []),
         state.get("compliance_results", []),
     )
-    return {"evidence_graph": graph}
+    return {"evidence_graph": graph, "evidence_items": normalized_items}
