@@ -1,4 +1,4 @@
-"""Deterministic confidence scoring for verified compliance findings.
+"""Deterministic confidence scoring for grounded compliance findings.
 
 Confidence is derived from observable evidence properties rather than asking
 the LLM to invent a confidence percentage.
@@ -12,23 +12,28 @@ def _clamp(value: float) -> float:
 
 
 def _strength(items: List[Dict[str, Any]]) -> float:
-    if not items:
+    grounded = [item for item in items if item.get("grounded")]
+    if not grounded:
         return 0.0
     scores = []
-    for item in items:
+    for item in grounded:
         score = 0.55
         if item.get("quote"):
             score += 0.15
-        if item.get("start_seconds") is not None and item.get("end_seconds") is not None:
+        if item.get("grounded_start_seconds") is not None and item.get("grounded_end_seconds") is not None:
             score += 0.20
-        if item.get("source_type") in {"SPEECH", "OCR"}:
+        if item.get("grounded_source_type") in {"SPEECH", "OCR"}:
             score += 0.10
         scores.append(min(score, 1.0))
     return sum(scores) / len(scores)
 
 
 def _multimodal_agreement(supporting: List[Dict[str, Any]]) -> float:
-    modalities = {item.get("source_type") for item in supporting if item.get("source_type")}
+    modalities = {
+        item.get("grounded_source_type")
+        for item in supporting
+        if item.get("grounded") and item.get("grounded_source_type")
+    }
     if len(modalities) >= 2:
         return 1.0
     if len(modalities) == 1:
@@ -37,8 +42,8 @@ def _multimodal_agreement(supporting: List[Dict[str, Any]]) -> float:
 
 
 def confidence_engine_node(state: Dict[str, Any]) -> Dict[str, Any]:
-    """Calculate transparent confidence scores from verifier outputs."""
-    verification_results = state.get("verification_results") or []
+    """Calculate transparent confidence scores from grounded verification."""
+    verification_results = state.get("grounded_verification_results") or state.get("verification_results") or []
     findings = state.get("compliance_results") or []
     results: List[Dict[str, Any]] = []
 
@@ -60,20 +65,27 @@ def confidence_engine_node(state: Dict[str, Any]) -> Dict[str, Any]:
             "REJECTED": 0.15,
         }.get(decision, 0.55)
 
+        grounded_support = [item for item in supporting if item.get("grounded")]
         temporal = 0.0
         if any(
-            item.get("start_seconds") is not None and item.get("end_seconds") is not None
-            for item in supporting
+            item.get("grounded_start_seconds") is not None and item.get("grounded_end_seconds") is not None
+            for item in grounded_support
         ):
             temporal = 1.0
-        elif supporting:
+        elif grounded_support:
             temporal = 0.35
 
+        grounding_factor = (
+            len(grounded_support) / len(supporting)
+            if supporting else 0.0
+        )
+
         score = (
-            0.35 * support_strength
-            + 0.20 * temporal
-            + 0.20 * multimodal
+            0.30 * support_strength
+            + 0.15 * temporal
+            + 0.15 * multimodal
             + 0.25 * verification_factor
+            + 0.15 * grounding_factor
             - 0.20 * counter_strength
         )
         score = _clamp(score)
@@ -87,6 +99,7 @@ def confidence_engine_node(state: Dict[str, Any]) -> Dict[str, Any]:
             "temporal_alignment": round(temporal, 3),
             "multimodal_agreement": round(multimodal, 3),
             "verification_factor": round(verification_factor, 3),
+            "grounding_factor": round(grounding_factor, 3),
             "decision": decision,
         })
 
