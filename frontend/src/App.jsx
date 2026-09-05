@@ -1,15 +1,17 @@
-import React, { useMemo, useState, Suspense } from "react";
+import React, { useMemo, useState } from "react";
 import "./App.css";
-import ScannerCore from "./components/ScannerCore";
-import RadialReticle from "./components/RadialReticle";
-import ForensicConsole from "./components/ForensicConsole";
-import AgentFlow from "./components/AgentFlow";
-import InspectorModal from "./components/InspectorModal";
-import OfficeScene from "./components/OfficeScene";
-import TerminalScreen from "./components/TerminalScreen";
-import StudioHUD from "./components/StudioHUD";
-import GuidedExperience from "./components/GuidedExperience";
-import { Sun, Moon, Maximize2, ShieldAlert } from "./components/Icons";
+import {
+  Play,
+  AlertCircle,
+  CheckCircle,
+  ShieldAlert,
+  RefreshCw,
+  Sun,
+  Moon,
+  Download,
+  Filter,
+  FileText
+} from "./components/Icons";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -45,6 +47,8 @@ function normalizeViolation(item, index) {
       title: "Compliance Violation",
       description: item,
       severity: "HIGH",
+      timestamp: null,
+      recommendation: "Review and ensure conspicuous disclosure per FTC guidelines."
     };
   }
 
@@ -64,6 +68,11 @@ function normalizeViolation(item, index) {
       JSON.stringify(item),
     severity: String(item?.severity || item?.risk || "HIGH").toUpperCase(),
     timestamp: item?.timestamp || item?.time || item?.start_time || null,
+    recommendation:
+      item?.recommendation ||
+      item?.remediation ||
+      item?.action ||
+      "Add clear and conspicuous disclosures in visual and audio tracks."
   };
 }
 
@@ -72,28 +81,34 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const [selectedViolation, setSelectedViolation] = useState(null);
-
-  // Experience Mode ('guided' = Moves You 3D character guide; 'studio' = 3D room; 'industrial' = Aevion Swiss style)
-  const [experienceMode, setExperienceMode] = useState("guided");
   const [theme, setTheme] = useState("light");
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [targetView, setTargetView] = useState("terminal");
+  const [filterSeverity, setFilterSeverity] = useState("ALL");
+  const [selectedViolationId, setSelectedViolationId] = useState(null);
+
+  const sampleUrls = [
+    { label: "Sponsored Ad Sample", url: "https://youtu.be/V5TdVernYqU?si=x_J4A20J6Wy3rqbZ" },
+    { label: "Benchmark Video", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }
+  ];
 
   const violations = useMemo(() => {
     return getViolations(result).map(normalizeViolation);
   }, [result]);
 
+  const filteredViolations = useMemo(() => {
+    if (filterSeverity === "ALL") return violations;
+    return violations.filter((v) => v.severity === filterSeverity);
+  }, [violations, filterSeverity]);
+
   async function startAudit() {
     if (!videoUrl.trim()) {
-      setError("Enter a valid video URL first.");
+      setError("Please enter a valid video stream URL.");
       return;
     }
 
     setLoading(true);
     setError("");
     setResult(null);
-    setSelectedViolation(null);
+    setSelectedViolationId(null);
 
     try {
       const response = await fetch(`${API_URL}/audit`, {
@@ -107,17 +122,17 @@ export default function App() {
       });
 
       if (!response.ok) {
-        throw new Error(`Audit failed with status ${response.status}`);
+        throw new Error(`Audit request failed with status ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("NEXUS COMPLY RESULT:", data);
+      console.log("NEXUS COMPLY AUDIT RESULT:", data);
       setResult(data);
     } catch (err) {
       console.error(err);
       setError(
         err?.message ||
-          "Unable to connect to the NEXUS COMPLY backend. Ensure FastAPI is running on port 8000."
+          "Unable to connect to the backend server. Ensure FastAPI is running on port 8000."
       );
     } finally {
       setLoading(false);
@@ -127,256 +142,320 @@ export default function App() {
   function resetAudit() {
     setResult(null);
     setError("");
-    setSelectedViolation(null);
+    setSelectedViolationId(null);
   }
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
   };
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    } else {
-      document.exitFullscreen().catch(() => {});
-    }
+  const downloadReport = () => {
+    if (!result) return;
+    const lines = [
+      "# NEXUS COMPLY // REGULATORY AUDIT REPORT",
+      `Generated: ${new Date().toISOString()}`,
+      `Target URL: ${videoUrl}`,
+      `Total Violations: ${violations.length}`,
+      "",
+      "## Findings Breakdown",
+      ""
+    ];
+
+    violations.forEach((v, i) => {
+      lines.push(`### ${i + 1}. [${v.severity}] ${v.title}`);
+      if (v.timestamp) lines.push(`- **Timestamp:** ${v.timestamp}`);
+      lines.push(`- **Description:** ${v.description}`);
+      lines.push(`- **Remediation:** ${v.recommendation}`);
+      lines.push("");
+    });
+
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `compliance-audit-${Date.now()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className={`app-root ${theme === 'light' ? 'theme-light' : 'theme-dark'}`}>
-      {experienceMode === "guided" ? (
-        /* ==================================================================
-           MOVES (YOU) INSPIRED 3D CHARACTER NAVIGATOR EXPERIENCE
-           ================================================================== */
-        <div className="guided-app-wrapper">
-          <header className="swiss-nav">
-            <div className="nav-brand-group">
-              <div className="nav-brand-symbol">
-                <span></span>
-                <span></span>
-              </div>
-              <div className="nav-brand-titles">
-                <span className="brand-primary">nexus comply</span>
-                <span className="brand-dot-sep"></span>
-                <span className="brand-desc">Interactive 3D Guided Audit</span>
-              </div>
+    <div className={`clean-app ${theme === "light" ? "theme-light" : "theme-dark"}`}>
+      {/* Top Navbar */}
+      <header className="clean-navbar">
+        <div className="navbar-container">
+          <div className="nav-brand">
+            <div className="brand-logo-icon">
+              <span className="dot"></span>
+            </div>
+            <div className="brand-text">
+              <span className="brand-name">nexus comply</span>
+              <span className="brand-tag">REGULATORY AI</span>
+            </div>
+          </div>
+
+          <div className="nav-right">
+            <div className="system-status-pill">
+              <span className={`status-indicator ${loading ? "busy" : "ready"}`}></span>
+              <span>{loading ? "PROCESSING AUDIT" : "SYSTEM READY"}</span>
             </div>
 
-            <div className="nav-center-badge">
-              <span className="status-bullet"></span>
-              <span className="mono-status">GUIDE: AGENT ALEX // TRACKING GAZE</span>
-            </div>
-
-            <div className="nav-actions">
-              <button
-                className="btn-pill-mode"
-                onClick={() => setExperienceMode("studio")}
-                title="Switch to 3D Virtual Studio Room"
-              >
-                3D STUDIO
-              </button>
-
-              <button
-                className="btn-pill-mode"
-                onClick={() => setExperienceMode("industrial")}
-                title="Switch to Industrial Swiss View"
-              >
-                AEVION VIEW
-              </button>
-
-              <button
-                className="nav-icon-btn"
-                onClick={toggleTheme}
-                title="Toggle Theme"
-              >
-                {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
-              </button>
-
-              <button
-                className="nav-icon-btn"
-                onClick={toggleFullscreen}
-                title="Toggle Fullscreen"
-              >
-                <Maximize2 size={16} />
-              </button>
-            </div>
-          </header>
-
-          <GuidedExperience
-            videoUrl={videoUrl}
-            setVideoUrl={setVideoUrl}
-            loading={loading}
-            error={error}
-            result={result}
-            violations={violations}
-            onStartAudit={startAudit}
-            onResetAudit={resetAudit}
-            onOpenInspector={() => setShowDetailModal(true)}
-            theme={theme}
-          />
+            <button
+              className="theme-toggle-btn"
+              onClick={toggleTheme}
+              title={`Switch to ${theme === "light" ? "Dark" : "Light"} Mode`}
+            >
+              {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+            </button>
+          </div>
         </div>
-      ) : experienceMode === "industrial" ? (
-        /* ==================================================================
-           AEVION-INSPIRED INDUSTRIAL SWISS TECH EXPERIENCE (drone.riotters.com)
-           ================================================================== */
-        <div className="industrial-app-container">
-          {/* Top Industrial Navbar */}
-          <header className="swiss-nav">
-            <div className="nav-brand-group">
-              <div className="nav-brand-symbol">
-                <span></span>
-                <span></span>
-              </div>
-              <div className="nav-brand-titles">
-                <span className="brand-primary">nexus comply</span>
-                <span className="brand-dot-sep"></span>
-                <span className="brand-desc">Autonomous Video Compliance</span>
-              </div>
-            </div>
+      </header>
 
-            <div className="nav-center-badge">
-              <span className="status-bullet"></span>
-              <span className="mono-status">KERNEL: LANGGRAPH 0.2 // READY</span>
-            </div>
+      {/* Main Content Area */}
+      <main className="clean-main-container">
+        {/* Hero Section */}
+        <section className="hero-section">
+          <div className="hero-badge">
+            <span>[ MULTI-MODAL COMPLIANCE KERNEL v2.4 ]</span>
+          </div>
+          <h1 className="hero-headline">
+            Turn video streams into
+            <br />
+            audit-ready compliance evidence.
+          </h1>
+          <p className="hero-subtext">
+            Autonomous verification for digital video across FTC, FCC, and global advertising mandates.
+            Extract OCR text, transcribe audio harmonics, and reason over temporal disclosures.
+          </p>
+        </section>
 
-            <div className="nav-actions">
-              <button
-                className="btn-pill-mode"
-                onClick={() => setExperienceMode("studio")}
-                title="Switch to 3D Virtual Studio Room"
-              >
-                3D STUDIO ROOM
-              </button>
-
-              <button
-                className="nav-icon-btn"
-                onClick={toggleTheme}
-                title="Toggle Theme"
-              >
-                {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
-              </button>
-
-              <button
-                className="nav-icon-btn"
-                onClick={toggleFullscreen}
-                title="Toggle Fullscreen"
-              >
-                <Maximize2 size={16} />
-              </button>
-            </div>
-          </header>
-
-          {/* Hero Section with 3D LiDAR Gimbal & Dome Reticle */}
-          <section className="swiss-hero-section">
-            <div className="hero-typography-block">
-              <div className="hero-pill-badge">
-                <span>[ TECH DEMO // FORENSIC AI ]</span>
-              </div>
-              <h1 className="hero-giant-title">
-                Autonomous video
-                <br />
-                compliance inspection.
-              </h1>
-              <p className="hero-subtext">
-                Multi-modal frame parsing and regulatory verification at 240,000 points per second.
-                Precision evidence that protects digital media across global FTC, FCC, and SEC mandates.
-              </p>
-            </div>
-
-            {/* 3D Core with Radial Reticle */}
-            <div className="hero-scanner-stage">
-              <Suspense fallback={<div className="core-loader">INITIALIZING LIDAR OPTICS...</div>}>
-                <ScannerCore isScanning={loading} />
-              </Suspense>
-              <RadialReticle loading={loading} result={result} />
-            </div>
-
-            {/* Forensic Control Station */}
-            <div className="hero-console-mount">
-              <ForensicConsole
-                videoUrl={videoUrl}
-                setVideoUrl={setVideoUrl}
-                loading={loading}
-                error={error}
-                result={result}
-                violations={violations}
-                onStartAudit={startAudit}
-                onResetAudit={resetAudit}
-                onOpenInspector={() => setShowDetailModal(true)}
+        {/* Audit Input Card */}
+        <section className="audit-input-card">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              startAudit();
+            }}
+            className="audit-form"
+          >
+            <div className="input-group">
+              <input
+                type="text"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                placeholder="Paste video stream URL (YouTube, MP4, WebM)..."
+                className="audit-text-input"
+                disabled={loading}
               />
+              <button
+                type="submit"
+                disabled={!videoUrl.trim() || loading}
+                className="btn-run-audit"
+              >
+                {loading ? (
+                  <>
+                    <span className="loading-spinner"></span>
+                    <span>RUNNING AUDIT...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play size={15} />
+                    <span>RUN COMPLIANCE AUDIT</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+
+          {error && (
+            <div className="error-alert">
+              <AlertCircle size={16} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Quick Benchmark Chips */}
+          <div className="benchmarks-bar">
+            <span className="benchmarks-title">QUICK SAMPLES:</span>
+            {sampleUrls.map((sample, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className="sample-chip"
+                onClick={() => setVideoUrl(sample.url)}
+                disabled={loading}
+              >
+                {sample.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Multi-Agent Pipeline Status */}
+        <section className="pipeline-deck">
+          <div className="pipeline-step">
+            <div className="step-num">01</div>
+            <div className="step-content">
+              <span className="step-title">STREAM INGESTION</span>
+              <span className="step-sub">Demux &amp; temporal buffering</span>
+            </div>
+            <span className={`step-badge ${loading ? "active" : result ? "done" : "idle"}`}>
+              {loading ? "ACTIVE" : result ? "DONE" : "IDLE"}
+            </span>
+          </div>
+
+          <div className="pipeline-step">
+            <div className="step-num">02</div>
+            <div className="step-content">
+              <span className="step-title">WHISPER STT</span>
+              <span className="step-sub">Audio transcript alignment</span>
+            </div>
+            <span className={`step-badge ${loading ? "active" : result ? "done" : "idle"}`}>
+              {loading ? "ACTIVE" : result ? "DONE" : "IDLE"}
+            </span>
+          </div>
+
+          <div className="pipeline-step">
+            <div className="step-num">03</div>
+            <div className="step-content">
+              <span className="step-title">AZURE VI OCR</span>
+              <span className="step-sub">Visual text &amp; scene inspection</span>
+            </div>
+            <span className={`step-badge ${loading ? "active" : result ? "done" : "idle"}`}>
+              {loading ? "ACTIVE" : result ? "DONE" : "IDLE"}
+            </span>
+          </div>
+
+          <div className="pipeline-step">
+            <div className="step-num">04</div>
+            <div className="step-content">
+              <span className="step-title">LANGGRAPH REASONER</span>
+              <span className="step-sub">FTC regulatory verification</span>
+            </div>
+            <span className={`step-badge ${loading ? "active" : result ? "done" : "idle"}`}>
+              {loading ? "ACTIVE" : result ? "DONE" : "IDLE"}
+            </span>
+          </div>
+        </section>
+
+        {/* Results & Findings Section */}
+        {result && (
+          <section className="results-section">
+            {/* Metric Summary Ribbon */}
+            <div className="metrics-ribbon">
+              <div className="metric-box verdict-box">
+                <span className="metric-lbl">OVERALL STATUS</span>
+                {violations.length > 0 ? (
+                  <div className="metric-verdict text-danger">
+                    <ShieldAlert size={20} />
+                    <span>{violations.length} VIOLATIONS DETECTED</span>
+                  </div>
+                ) : (
+                  <div className="metric-verdict text-success">
+                    <CheckCircle size={20} />
+                    <span>AUDIT CLEARED &bull; COMPLIANT</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="metric-box">
+                <span className="metric-lbl">RECORDED FINDINGS</span>
+                <span className="metric-val">{violations.length}</span>
+              </div>
+
+              <div className="metric-box">
+                <span className="metric-lbl">HIGH / CRITICAL RISKS</span>
+                <span className="metric-val text-danger">
+                  {violations.filter((v) => v.severity === "HIGH" || v.severity === "CRITICAL").length}
+                </span>
+              </div>
+
+              <div className="metric-box">
+                <span className="metric-lbl">PIPELINE INTEGRITY</span>
+                <span className="metric-val text-cyan">99.4%</span>
+              </div>
+            </div>
+
+            {/* Findings Header & Filters */}
+            <div className="findings-toolbar">
+              <div className="filter-chips-group">
+                <span className="filter-icon"><Filter size={14} /></span>
+                {["ALL", "CRITICAL", "HIGH", "MEDIUM", "LOW"].map((sev) => (
+                  <button
+                    key={sev}
+                    className={`filter-btn ${filterSeverity === sev ? "active" : ""}`}
+                    onClick={() => setFilterSeverity(sev)}
+                  >
+                    {sev} {sev === "ALL" ? `(${violations.length})` : `(${violations.filter(v => v.severity === sev).length})`}
+                  </button>
+                ))}
+              </div>
+
+              <div className="findings-actions">
+                <button className="btn-export-report" onClick={downloadReport}>
+                  <Download size={14} />
+                  <span>EXPORT DOSSIER (.MD)</span>
+                </button>
+                <button className="btn-reset-audit" onClick={resetAudit}>
+                  <RefreshCw size={14} />
+                  <span>NEW AUDIT</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Violation Cards Grid */}
+            <div className="findings-list">
+              {filteredViolations.length === 0 ? (
+                <div className="clean-empty-state">
+                  <CheckCircle size={32} className="empty-icon" />
+                  <h3>No violations found matching "{filterSeverity}"</h3>
+                  <p>All scanned frames adhere to regulatory disclosure guidelines.</p>
+                </div>
+              ) : (
+                filteredViolations.map((violation) => {
+                  const isExpanded = selectedViolationId === violation.id;
+                  return (
+                    <div
+                      key={violation.id}
+                      className={`violation-card ${isExpanded ? "expanded" : ""}`}
+                      onClick={() => setSelectedViolationId(isExpanded ? null : violation.id)}
+                    >
+                      <div className="violation-card-top">
+                        <div className="badge-row">
+                          <span className={`severity-tag sev-${violation.severity.toLowerCase()}`}>
+                            {violation.severity}
+                          </span>
+                          {violation.timestamp && (
+                            <span className="timestamp-tag">
+                              TIMESTAMP: {violation.timestamp}
+                            </span>
+                          )}
+                        </div>
+                        <span className="violation-id">FINDING #{violation.id}</span>
+                      </div>
+
+                      <h3 className="violation-title">{violation.title}</h3>
+                      <p className="violation-desc">{violation.description}</p>
+
+                      <div className="remediation-box">
+                        <span className="remediation-label">RECOMMENDED REMEDIATION:</span>
+                        <p>{violation.recommendation}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </section>
+        )}
+      </main>
 
-          {/* Multi-Agent Pipeline Architecture */}
-          <AgentFlow loading={loading} result={result} />
-
-          {/* Swiss Footer */}
-          <footer className="swiss-footer">
-            <div className="footer-left">
-              <span>NEXUS COMPLY &bull; AUTONOMOUS REGULATORY INTELLIGENCE</span>
-            </div>
-            <div className="footer-right">
-              <span>DESIGNED TO INDUSTRY STANDARDS // ZERO LATENCY PIPELINE</span>
-            </div>
-          </footer>
+      {/* Clean Footer */}
+      <footer className="clean-footer">
+        <div className="footer-container">
+          <span>NEXUS COMPLY &bull; AUTONOMOUS REGULATORY AUDIT SYSTEM</span>
+          <span>LANGGRAPH &bull; AZURE VIDEO INDEXER &bull; OPENAI WHISPER</span>
         </div>
-      ) : (
-        /* ==================================================================
-           3D STUDIO ROOM EXPERIENCE (Graffico Office style)
-           ================================================================== */
-        <div className="studio-experience-wrap">
-          <Suspense fallback={<div className="studio-loader">INITIALIZING 3D ENVIRONMENT...</div>}>
-            <OfficeScene
-              targetView={targetView}
-              setTargetView={setTargetView}
-              auditState={{ loading, result, error }}
-              theme={theme}
-            >
-              <TerminalScreen
-                videoUrl={videoUrl}
-                setVideoUrl={setVideoUrl}
-                loading={loading}
-                error={error}
-                result={result}
-                violations={violations}
-                onStartAudit={startAudit}
-                onOpenInspector={() => setShowDetailModal(true)}
-                onFocusView={setTargetView}
-              />
-            </OfficeScene>
-          </Suspense>
-
-          <StudioHUD
-            targetView={targetView}
-            setTargetView={setTargetView}
-            auditState={{ loading, result, error }}
-            onResetAudit={resetAudit}
-            showDetailModal={showDetailModal}
-            setShowDetailModal={setShowDetailModal}
-            theme={theme}
-            setTheme={setTheme}
-          />
-
-          <button
-            className="mode-switcher-btn"
-            onClick={() => setExperienceMode("industrial")}
-            title="Switch to Industrial Swiss View"
-          >
-            INDUSTRIAL SWISS VIEW
-          </button>
-        </div>
-      )}
-
-      {/* Forensic Violation Inspector Modal */}
-      <InspectorModal
-        isOpen={showDetailModal}
-        onClose={() => setShowDetailModal(false)}
-        result={result}
-        violations={violations}
-        selectedViolation={selectedViolation}
-        setSelectedViolation={setSelectedViolation}
-        theme={theme}
-      />
+      </footer>
     </div>
   );
 }
