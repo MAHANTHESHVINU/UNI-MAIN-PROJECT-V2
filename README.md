@@ -4,7 +4,7 @@ NEXUS COMPLY audits YouTube videos for brand and policy compliance. GitHub Pages
 
 ## Live deployments
 
-- GitHub Pages frontend: deployment pending
+- GitHub Pages frontend: [NEXUS COMPLY live preview](https://mahantheshvinu.github.io/UNI-MAIN-PROJECT-V2/)
 - Audit API: not deployed; GitHub Pages currently serves a frontend preview only
 
 Audits require the configured Azure Video Indexer, Azure OpenAI, and Azure AI Search resources. Keep credentials out of Git; never commit `.env`.
