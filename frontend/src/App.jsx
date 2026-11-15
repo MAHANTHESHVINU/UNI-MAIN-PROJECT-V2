@@ -18,7 +18,9 @@ import {
   Check
 } from "./components/Icons";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = (
+  import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000"
+).replace(/\/+$/, "");
 
 function getViolations(result) {
   if (!result) return [];
@@ -106,6 +108,11 @@ export default function App() {
   }, [violations, filterSeverity]);
 
   async function startAudit() {
+    if (!API_URL) {
+      setError("The audit backend is not deployed for this GitHub Pages preview.");
+      return;
+    }
+
     if (!videoUrl.trim()) {
       setError("Please enter a valid video stream URL.");
       return;
@@ -229,7 +236,7 @@ export default function App() {
           <div className="nav-right">
             <div className="system-status-pill technical-status-pill">
               <span className={`status-indicator ${loading ? "busy" : "ready"}`}></span>
-              <span>{loading ? "EXEC_PIPELINE" : "SYSTEM_READY"}</span>
+              <span>{loading ? "EXEC_PIPELINE" : API_URL ? "SYSTEM_READY" : "PREVIEW_ONLY"}</span>
             </div>
 
             <button
@@ -291,7 +298,7 @@ export default function App() {
               />
               <button
                 type="submit"
-                disabled={!videoUrl.trim() || loading}
+                disabled={!API_URL || !videoUrl.trim() || loading}
                 className="btn-run-audit technical-btn-submit"
               >
                 {loading ? (
@@ -308,6 +315,12 @@ export default function App() {
               </button>
             </div>
           </form>
+
+          {!API_URL && (
+            <p className="backend-unavailable-notice" role="status">
+              GitHub Pages is hosting the frontend preview only. Audits are unavailable until a backend is deployed.
+            </p>
+          )}
 
           {error && (
             <div className="error-alert technical-error">

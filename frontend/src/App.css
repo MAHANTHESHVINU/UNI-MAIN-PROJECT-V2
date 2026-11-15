@@ -320,6 +320,13 @@ body, html {
   max-width: 780px;
 }
 
+.backend-unavailable-notice {
+  margin-top: 12px;
+  color: var(--amber-telemetry);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 /* --------------------------------------------------------------------------
    TECHNICAL INGESTION CARD
    -------------------------------------------------------------------------- */
